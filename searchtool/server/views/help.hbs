@@ -1,0 +1,178 @@
+<div class="media-body">
+
+  <a name="N10013"></a>
+  <a name="Overview"></a>
+  <h2 class="boxed">Overview</h2>
+  <div class="section">
+    <p>This search engine is intended to be used buy USPTO staff that has a familiary to the Office Actions processes. The following shows advanced search features designed to help in analyizing Office Action Data.
+
+    </p>
+  </div>
+
+
+  <a name="N10032"></a>
+  <a name="Terms"></a>
+  <h2 class="boxed">Terms</h2>
+  <div class="section">
+    <p>A query is broken up into terms and operators. There are two types of terms: Single Terms and Phrases.</p>
+    <p>A Single Term is a single word such as "CFR" or "Patent".</p>
+    <p>A Phrase is a group of words surrounded by double quotes such as "Art Unit 3669".</p>
+    <p>Multiple terms can be combined together with Boolean operators to form a more complex query (see below).</p>
+
+  </div>
+
+
+  <a name="N10048"></a>
+  <a name="Fields"></a>
+  <h2 class="boxed">Fields</h2>
+  <div class="section">
+    <p>USPTO Office Action search supports fielded data. When performing a search you can either specify a field, or use the default field. The field names and default field is implementation specific.</p>
+    <p>You can search any field by typing the field name followed by a colon ":" and then the term you are looking for. </p>
+    <p>As an example, let's assume a USPTO Office Action Search index contains two fields, title and text and text is the default field. If you want to find the document entitled "The Right Way" which contains the text "don't go this way", you can enter:
+      </p>
+    <pre class="code">appid:13845920 AND textdata:AIA</pre>
+    <p>or</p>
+    <pre class="code">appid:"13845920" AND AIA</pre>
+    <p>Since text is the default field, the field indicator is not required.</p>
+    <p>Note: The field is only valid for the term that it directly precedes, so the query</p>
+    <pre class="code">textdata:AIA first invent</pre>
+    <p>Will only find "AIA" in the textdata field. It will find "first" and "invent" in the default field (in this case the text field). </p>
+  </div>
+
+
+  <a name="N1006D"></a>
+  <a name="Term Modifiers"></a>
+  <h2 class="boxed">Term Modifiers</h2>
+  <div class="section">
+    <p>USPTO Office Action search supports modifying query terms to provide a wide range of searching options.</p>
+    <a name="N10076"></a>
+    <a name="Wildcard Searches"></a>
+    <h3 class="boxed">Wildcard Searches</h3>
+    <p>USPTO Office Action search supports single and multiple character wildcard searches within single terms (not within phrase queries).</p>
+    <p>To perform a single character wildcard search use the "?" symbol.</p>
+    <p>To perform a multiple character wildcard search use the "*" symbol.</p>
+    <p>The single character wildcard search looks for terms that match that with the single character replaced. For example, to search for "text" or "AIA" you can use the search:</p>
+    <pre class="code">A?A</pre>
+    <p>Multiple character wildcard searches looks for 0 or more characters. For example, to search for AIA, AbA you can use the search: </p>
+    <pre class="code">A*A</pre>
+    <p>You can also use the wildcard searches in the middle of a term.</p>
+    <pre class="code">te*t</pre>
+    <p>Note: You cannot use a * or ? symbol as the first character of a search.</p>
+    <a name="N1009B"></a>
+    <a name="Fuzzy Searches"></a>
+    <h3 class="boxed">Fuzzy Searches</h3>
+    <p>USPTO Office Action Search supports fuzzy searches based on the Levenshtein Distance, or Edit Distance algorithm. To do a fuzzy search use the tilde, "~", symbol at the end of a Single word Term. For example to search for a term similar in spelling
+      to "patent" use the fuzzy search: </p>
+    <pre class="code">patent~</pre>
+    <p>This search will find terms like foam and roams.</p>
+    <p>Starting with USPTO Office Action Search 1.9 an additional (optional) parameter can specify the required similarity. The value is between 0 and 1, with a value closer to 1 only terms with a higher similarity will be matched. For example:</p>
+    <pre class="code">patent~0.8</pre>
+    <p>The default that is used if the parameter is not given is 0.5.</p>
+    <a name="N100B4"></a>
+    <a name="Proximity Searches"></a>
+    <h3 class="boxed">Proximity Searches</h3>
+    <p>USPTO Office Action Search supports finding words are a within a specific distance away. To do a proximity search use the tilde, "~", symbol at the end of a Phrase. For example to search for a "Art" and "Unit" within 3 words of each other in a document
+      use the search: </p>
+    <pre class="code">"Art Unit"~3</pre>
+    <a name="N100C1"></a>
+    <a name="Range Searches"></a>
+    <h3 class="boxed">Range Searches</h3>
+    <p>Range Queries allow one to match documents whose field(s) values are between the lower and upper bound specified by the Range Query. Range Queries can be inclusive or exclusive of the upper and lower bounds. Sorting is done lexicographically.</p>
+    <pre class="code">doc_date:[20020101 TO 20030101] ( Not Avail yet )</pre>
+    <p>This will find documents whose mod_date fields have values between 20020101 and 20030101, inclusive. Note that Range Queries are not reserved for date fields. You could also use range queries with non-date fields:</p>
+    <!-- <pre class="code">title:{Art TO Unit}</pre>
+<p>This will find all documents whose titles are between Aida and Carmen, but not including Aida and Carmen.</p>
+<p>Inclusive range queries are denoted by square brackets.  Exclusive range queries are denoted by
+            curly brackets.</p> -->
+    <a name="N100DA"></a>
+    <a name="Boosting a Term"></a>
+    <h3 class="boxed">Boosting a Term</h3>
+    <p>USPTO Office Action Search provides the relevance level of matching documents based on the terms found. To boost a term use the caret, "^", symbol with a boost factor (a number) at the end of the term you are searching. The higher the boost factor,
+      the more relevant the term will be.</p>
+    <p>Boosting allows you to control the relevance of a document by boosting its term. For example, if you are searching for</p>
+    <pre class="code">Art Unit</pre>
+    <p>and you want the term "Art" to be more relevant boost it using the ^ symbol along with the boost factor next to the term. You would type:</p>
+    <pre class="code">Art^4 Unit</pre>
+    <p>This will make documents with the term Art appear more relevant. You can also boost Phrase Terms as in the example: </p>
+    <pre class="code">"Art Unit"^4 "3669"</pre>
+    <p>By default, the boost factor is 1. Although the boost factor must be positive, it can be less than 1 (e.g. 0.2)</p>
+  </div>
+
+
+
+  <a name="N100FA"></a>
+  <a name="Boolean operators"></a>
+  <h2 class="boxed">Boolean Operators</h2>
+  <div class="section">
+    <p>Boolean operators allow terms to be combined through logic operators. USPTO Office Action Search supports AND, "+", OR, NOT and "-" as Boolean operators(Note: Boolean operators must be ALL CAPS).</p>
+    <a name="N10103"></a>
+    <a name="OR"></a>
+    <h3 class="boxed"></h3>
+    <p>The OR operator is the default conjunction operator. This means that if there is no Boolean operator between two terms, the OR operator is used. The OR operator links two terms and finds a matching document if either of the terms exist in a document.
+      This is equivalent to a union using sets. The symbol || can be used in place of the word OR.</p>
+    <p>To search for documents that contain either "Art Unit" or just "Art" use the query:</p>
+    <pre class="code">"Art Unit" Art</pre>
+    <p>or</p>
+    <pre class="code">"Art Unit" OR Art</pre>
+    <a name="N10116"></a>
+    <a name="AND"></a>
+    <h3 class="boxed">AND</h3>
+    <p>The AND operator matches documents where both terms exist anywhere in the text of a single document. This is equivalent to an intersection using sets. The symbol &amp;&amp; can be used in place of the word AND.</p>
+    <p>To search for documents that contain "Art Unit" and "3669" use the query: </p>
+    <pre class="code">"Art Unit" AND "3669"</pre>
+    <a name="N10126"></a>
+    <a name="+"></a>
+    <h3 class="boxed">+</h3>
+    <p>The "+" or required operator requires that the term after the "+" symbol exist somewhere in a the field of a single document.</p>
+    <p>To search for documents that must contain "Art" and may contain "USPTO Office Action Search" use the query:</p>
+    <pre class="code">+Art Unit</pre>
+    <a name="N10136"></a>
+    <a name="NOT"></a>
+    <h3 class="boxed">NOT</h3>
+    <p>The NOT operator excludes documents that contain the term after NOT. This is equivalent to a difference using sets. The symbol ! can be used in place of the word NOT.</p>
+    <p>To search for documents that contain "Art Unit" but not "3669" use the query: </p>
+    <pre class="code">"Art Unit" NOT "3669"</pre>
+
+    <a name="N1014C"></a>
+    <a name="-"></a>
+    <h3 class="boxed">-</h3>
+    <p>The "-" or prohibit operator excludes documents that contain the term after the "-" symbol.</p>
+    <p>To search for documents that contain "Art Unit" but not "3669" use the query: </p>
+    <pre class="code">"Art Unit" -"3669"</pre>
+  </div>
+
+
+  <a name="N1015D"></a>
+  <a name="Grouping"></a>
+  <h2 class="boxed">Grouping</h2>
+  <div class="section">
+    <p>USPTO Office Action Search supports using parentheses to group clauses to form sub queries. This can be very useful if you want to control the boolean logic for a query.</p>
+    <p>To search for either "Art" or "Unit" and "website" use the query:</p>
+    <pre class="code">(Art OR Unit) AND website</pre>
+    <p>This eliminates any confusion and makes sure you that website must exist and either term Art or Unit may exist.</p>
+  </div>
+
+
+  <a name="N10170"></a>
+  <a name="Field Grouping"></a>
+  <h2 class="boxed">Field Grouping</h2>
+  <div class="section">
+    <p>USPTO Office Action Search supports using parentheses to group multiple clauses to a single field.</p>
+    <p>To search for a textdata that contains both the word "double" and the phrase "35 U.S.C.101" use the query:</p>
+    <pre class="code">textdata:(+double +"35 U.S.C.101")</pre>
+  </div>
+
+
+  <a name="N10180"></a>
+  <a name="Escaping Special Characters"></a>
+  <h2 class="boxed">Escaping Special Characters</h2>
+  <div class="section">
+    <p>USPTO Office Action Search supports escaping special characters that are part of the query syntax. The current list special characters are</p>
+    <p>+ - &amp;&amp; || ! ( ) { } [ ] ^ " ~ * ? : \</p>
+    <p>To escape these character use the \ before the character. For example to search for (1+1):2 use the query:</p>
+    <pre class="code">\(1\+1\)\:2</pre>
+  </div>
+
+
+</div>
+</div>

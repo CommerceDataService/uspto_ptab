@@ -66,7 +66,7 @@ scriptName=$0
 statusDirectory=logs
 baseURL="https://bulkdata.uspto.gov/data2/patent/trial/appeal/board/"
 dropLocation="files"
-declare -i startDate
+startDate=19970702
 endDate=$(date +%Y%m%d) 
 retrieveAll=false
 retrieveNone=false
@@ -102,7 +102,8 @@ case "$1" in
   fi
   ;;
 -a | --all )
-  retrieveAll=true
+  #retrieveAll=true
+  log "INFO" "Date parameters: \n\tStartDate: $startDate \n\tEndDate:   $endDate"
   log "INFO" "Retrieve All parameter set to TRUE"
   ;;
 -n | --none )
@@ -127,36 +128,30 @@ mkdir -p $statusDirectory
 
 log "INFO" "-[JOB START] $(date): ------------"
 
-#if --all flag is set then get all available files from the page
-if $retrieveAll && ! $retrieveNone 
-then
-  log "INFO" "Starting file download process"
-  wget --directory-prefix=files -e robots=off --cut-dirs=3  --reject="index.html*" --no-parent --recursive --relative --level=1 --no-directories $baseURL
-  log "INFO" "File download process complete"
+startDate=$(date '+%C%y%m%d' -d "$startDate -$(date -d $startDate +%u) days + 5 day")
+begDate=$startDate
 
-#use the start and end dates to determine which files to get
-elif ! $retrieveAll && ! $retrieveNone
+if ! $retrieveNone
 then
   log "INFO" "Starting file download process"
-  startDate=$(date '+%C%y%m%d' -d "$startDate -$(date -d $startDate +%u) days + 5 day")
-  while [ $startDate -lt $endDate ]
+  while [ $begDate -le $endDate ]
   do
-    year=$(date -d $startDate +%Y) 
-    week=$(date -d $startDate +%V)
+    year=$(date -d $begDate +%Y) 
+    week=$(date -d $begDate +%V)
     if [ $year -eq  2015 ]
     then
       week="$(printf "%02d" $((10#$week-1)))"
     fi
-    zipFilePath=${baseURL}PTAB_${startDate}_WK${week}.zip
+    zipFilePath=${baseURL}PTAB_${begDate}_WK${week}.zip
     wget -q --spider $zipFilePath
     if [ $? -eq 0 ]
     then
       log "INFO" "Downloading file: $zipFilePath"
-      wget -nc -P $dropLocation $zipFilePath 
+      wget -nc -P $dropLocation $zipFilePath >> $statusDirectory/retrieve-log-$processingTime 2>&1
     else 
       log "ERR" "file does not exist: $zipFilePath"
     fi
-    startDate=$(date '+%C%y%m%d' -d "$startDate+7 days")
+    begDate=$(date '+%C%y%m%d' -d "$begDate+7 days")
   done
   log "INFO" "File download process complete"
 #if --none flag is set then skip download process
@@ -175,31 +170,38 @@ log "INFO" "Starting file parsing process"
 
 #parse all pdf files that have not already been parsed
 
-for f in $dropLocation/PTAB_*
+begDate=$startDate
+echo $begDate
+while [ $begDate -le $endDate ]
 do
-  if [[ $f == *.zip ]]
-  then
-    continue;
-  else
-    if [ -d "$f/PDF_image" ]
+  for f in $dropLocation/PTAB_*$begDate
+  do
+    if [[ $f == *.zip ]]
     then
-      for i in $f/PDF_image/*.pdf
-      do
-        fname=$(basename "$i")
-        fname="${fname%.*}"
-        if [ ! -f "$f/PDF_image/$fname.txt" ]
-        then
-          log "INFO" "Parsing document: $i to ${i%.*}.txt"
-          python parse.py "$i" 2>&1
-          # leaving this cURL command in so we can use it for reference or debugging
-          # curl -X PUT --data-binary @$i http://192.168.99.100:9998/tika --header "Content-type: application/pdf" > ${i%.*}.txt
-         fi
-      done
+      continue;
     else
-      log "INFO" "No files to parse"
+      echo $f
+      if [ -d "$f/PDF_image" ]
+      then
+        for i in $f/PDF_image/*.pdf
+        do
+          fname=$(basename "$i")
+          fname="${fname%.*}"
+          if [ ! -f "$f/PDF_image/$fname.txt" ]
+          then
+            log "INFO" "Parsing document: $i to ${i%.*}.txt"
+            python parse.py "$i" >> $statusDirectory/retrieve-log-$processingTime 2>&1
+            # leaving this cURL command in so we can use it for reference or debugging
+            # curl -X PUT --data-binary @$i http://192.168.99.100:9998/tika --header "Content-type: application/pdf" > ${i%.*}.txt
+           fi
+        done
+      else
+        log "INFO" "No files to parse"
+      fi
     fi
-  fi
-done       
+  done       
+  begDate=$(date '+%C%y%m%d' -d "$begDate+7 days")
+done
 
 log "INFO" "File parsing process complete"
 

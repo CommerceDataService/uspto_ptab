@@ -63,7 +63,7 @@ exports.buildSearch = function (req, res) {
             if (typeof response.body !== 'undefined') {
                 body = JSON.parse(response.body);
             }
-            if (typeof body.response.docs !== 'undefined') {
+            if (body && typeof body.response.docs !== 'undefined') {
                 res.render('newview', {
                     result:body.response.docs,
                     total:humanize.numberFormat(body.response.numFound,0),
