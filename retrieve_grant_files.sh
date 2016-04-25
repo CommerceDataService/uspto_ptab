@@ -36,7 +36,7 @@ function lock ( ) {
 
 function usage
 {
-    echo "usage: ./retrieve_files.sh [[-d YYYY YYYY]| [-a] | [-n] [url]"
+    echo "usage: ./retrieve_grant_files.sh [[-d YYYY YYYY]| [-a] | [-n] [url]"
 }
 
 function log()
@@ -47,7 +47,7 @@ function log()
   if [ $type = "WARN" -o $type = "ERR" ]
   then
     echo >> $statusDirectory/err-$processingTime
-    echo -e "$type: `date +%Y.%m.%d-%H:%M:%S` -- $scriptName -- $message" >> $statusDirectory/retrieve-err-$processingTime
+    echo -e "$type: `date +%Y.%m.%d-%H:%M:%S` -- $scriptName -- $message" >> $statusDirectory/retrieve-grant-err-$processingTime
   fi
   #
   # always write into log file
@@ -55,7 +55,7 @@ function log()
   echo
   echo -e "$type: `date +%Y.%m.%d-%H:%M:%S` -- $scriptName -- $message"
   echo >> $statusDirectory/log-$processingTime
-  echo -e "$type: `date +%Y.%m.%d-%H:%M:%S` -- $scriptName -- $message" >> $statusDirectory/retrieve-log-$processingTime
+  echo -e "$type: `date +%Y.%m.%d-%H:%M:%S` -- $scriptName -- $message" >> $statusDirectory/retrieve-grant-log-$processingTime
 }
 
 #=============================== MAIN BODY OF SCRIPT ===============================
@@ -70,7 +70,7 @@ startDate=1976
 endDate=$(date +%Y) 
 retrieveAll=false
 retrieveNone=false
-lockFile="/tmp/file_download.lck"
+lockFile="/tmp/file_grant_download.lck"
 
 touch $statusDirectory/log-$processingTime
 
@@ -109,36 +109,6 @@ case "$1" in
     exit 1
   fi
   ;;
--a | --all )
-  retrieveAll=true
-  if [ ! -z "$2" ]
-  then
-    echo $2
-    baseURL=$2
-    log "INFO" "Date parameters: \n\tStartDate: $startDate \n\tEndDate:   $endDate"
-    log "INFO" "Retrieve All parameter set to TRUE"
-    log "INFO" "URL set to: $baseURL"
-  else
-    log "ERR" "URL to files is not present: $2"
-    lock false
-    exit 1
-  fi
-  ;;
--n | --none )
-  retrieveNone=true
-  if [ ! -z "$2" ]
-  then
-    echo $2
-    baseURL=$2
-    log "INFO" "Date parameters: \n\tStartDate: $startDate \n\tEndDate:   $endDate"
-    log "INFO" "Retrieve NONE parameter set to TRUE"
-    log "INFO" "URL set to: $baseURL"
-  else
-    log "ERR" "URL to files is not present: $2"
-    lock false
-    exit 1
-  fi
-  ;;
 -h | --help )
   usage
   lock false
@@ -165,19 +135,11 @@ then
   log "INFO" "Starting file download process"
   while [ $begDate -le $endDate ]
   do
-    #year=$(date -d $begDate +%Y) 
-    #week=$(date -d $begDate +%V)
-    #if [ $year -eq  2015 ]
-    #then
-    #  week="$(printf "%02d" $((10#$week-1)))"
-    #fi
-    #zipFilePath=${baseURL}PTAB_${begDate}_WK${week}.zip
     wget -q --spider $baseURL/$begDate
     if [ $? -eq 0 ]
     then
       log "INFO" "Downloading files from: $baseURL/$begDate"
-      #wget -A zip -r -nc -np -P $dropLocation $baseURL/$begDate >> $statusDirectory/retrieve-log-$processingTime 2>&1
-      wget -nc -r -A zip -nc -P $dropLocation -o $statusDirectory/retrieve-grant-log-$processingTime $baseURL/$begDate
+      wget -r -A zip -nc -np -nd -P $dropLocation/$begDate -o $statusDirectory/retrieve-grant-log-$processingTime $baseURL/$begDate
     else 
       log "ERR" "file does not exist: $baseURL"
     fi
@@ -193,9 +155,51 @@ fi
 #unzip all zip files unless they have already been unzipped
 log "INFO" "Starting file unzipping process"
 
+
 find $dropLocation -type f -name "*.zip" -exec unzip -n {} -d $dropLocation \;
 
 log "INFO" "File unzip process complete"
+
+log "INFO" "Starting file parsing process"
+ 
+ #parse all pdf files that have not already been parsed
+ 
+begDate=$startDate
+echo $begDate
+while [ $begDate -le $endDate ]
+do
+  for f in $dropLocation/$begDate
+  do
+    if [[ $f == *.zip ]]
+    then
+      continue;
+    else
+      echo $f
+      if [ -d "$f" ]
+      then
+	echo "$f/*.pdf"
+        for i in $f/*.pdf
+        do
+          fname=$(basename "$i")
+          fname="${fname%.*}"
+	  echo $fname
+          if [ ! -f "$f/$fname.txt" ]
+          then
+            echo "parsing $i"
+            log "INFO" "Parsing document: $i to ${i%.*}.txt"
+            #python parse.py "$i" >> $statusDirectory/retrieve-log-$processingTime 2>&1
+           fi
+        done
+      else
+        log "INFO" "No files to parse"
+      fi
+    fi
+  done
+  begDate=$(date '+%C%y%m%d' -d "$begDate+7 days")
+done
+ 
+ log "INFO" "File parsing process complete"
+
 
 log "INFO" "-[JOB END]-- $(date): ------------"
 
