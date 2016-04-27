@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html class="no-js">
+
+<head>
+  <meta charset="utf-8">
+
+  <title>Office Action Search</title>
+
+  <meta name="description" content="Office Action Search">
+  <meta name="keywords" contnet="office actions">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, shrink-to-fit=no">
+  <meta name="theme-color" content="#004c97">
+
+  <meta property="og:title" content="Customize search results">
+  <meta property="og:description" content="">
+
+  <link rel="shortcut icon" href="designpatterns/1.x/generated/favicon.ico">
+
+  <!--[if lte IE 9]>
+            <script src="/designpatterns/1.x/generated/vendor/matchMedia/matchMedia.js"></script>
+            <script src="/designpatterns/1.x/generated/vendor/html5shiv/html5shiv.min.js"></script>
+        <![endif]-->
+
+  <link href="designpatterns/1.x/generated/styles/vendor.css" rel="stylesheet" />
+  <link href="designpatterns/1.x/generated/styles/main.css" rel="stylesheet" />
+  <link href="designpatterns/1.x/generated/styles/appDemo.min.css" rel="stylesheet" />
+  <style>
+    /* fix for IE transparent scroll bar */
+
+    @-ms-viewport {
+      width: auto !important;
+    }
+  </style>
+</head>
+
+<body class="search-results">
+  <!--[if lt IE 9]>
+        <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+    <![endif]-->
+
+
+  <div class="skipLinks alert-info">
+    <a class="sr-only focusable" href="#search">Skip to search</a>
+    <a class="sr-only focusable" href="#searchResults">Skip to search results</a>
+    <a class="sr-only focusable" href="#filters">Skip to search results filters</a>
+  </div>
+  <header class="app-header clearfix">
+    <nav class="navbar navbar-inverse">
+      <div class="container-fluid container--full">
+        <div class="navbar-header">
+          <button aria-controls="navbar" aria-expanded="false" data-target="#navbar" data-toggle="collapse" class="navbar-toggle collapsed" type="button">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <!-- <h1 class="margin-top-0"><a class="navbar-brand" href="dashboard.html">
+                    <span class="uspto-header__top__logo uspto-logo-svg margin-right-2"></span> Application Monitor <small>DEMO</small></a></h1> -->
+        </div>
+        <div class="navbar-collapse collapse" id="navbar">
+          <ul class="nav navbar-nav navbar-right">
+            <li><a href="#" data-toggle="tooltip" data-placement="left" title="Application alerts"><i class="icon icon-warning icon-inverse"></i><span class="ex-header--icon-badge">2</span></a></li>
+            <li class="dropdown">
+              <a aria-expanded="false" aria-haspopup="true" role="button" data-toggle="dropdown" class="dropdown-toggle" href="#"><i class="icon icon-user margin-right-1 icon-inverse"></i>{{#if email}} {{email}} {{/if}}<span class="caret"></span></a>
+              <ul class="dropdown-menu">
+                <!-- <li><a href="user-profile.html">User Profile</a></li>
+                           <li><a href="#modal-appSettings" data-toggle="modal">Settings</a></li> -->
+                <li class="divider" role="separator"></li>
+                <li><a href="/logout">Sign out</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+  </header>
+
+
+  <main class="wrapper container-fluid container--full">
+    <div class="row-grid">
+      <nav class="pane-left keyline-bottom">
+        <a tabindex="-1" id="contentNav"></a>
+        <div class="close-sidebar keyline-bottom clearfix">
+          <button type="button" class="btn-closeSidebar pull-right btn btn-sm btn-default btn-hover"><i class="icon icon-angle-double-left"></i> Close</button>
+        </div>
+        <ul role="tab-list" class="nav nav-stacked">
+          <li tabindex="0" class="category" role="presentation"><i class="icon icon-dashboard"></i> Dashboards</li>
+          <li role="presentation"><a href="#" role="tab">Systems summary</a></li>
+          <li role="presentation"><a href="#" role="tab">System A</a></li>
+          <li role="presentation"><a href="#" role="tab">System B</a></li>
+          <li role="presentation"><a href="#" role="tab">System C</a></li>
+          <li tabindex="0" class="category" role="presentation"><i class="icon icon-bar-chart"></i> Reports</li>
+          <li role="presentation"><a href="#" role="tab">Fees and transactions</a></li>
+          <li role="presentation"><a href="#" role="tab">Trends</a></li>
+          <li role="presentation"><a href="#" role="tab">Disposition</a></li>
+          <li role="presentation"><a href="#" role="tab">Custom</a></li>
+        </ul>
+      </nav>
+
+      <div class="pane-center col">
+        <div class="panel--page panel panel-default">
+          <a tabindex="-1" id="search"></a>
+          <div class="header keyline-bottom">
+            <form role="form" action="/newsearch" class="padding-top-2 padding-right-2 padding-bottom-2">
+              <h2 class="margin-top-0">Search</h2>
+              <div class="input-search input-group">
+                <input type="text" name="q" value="{{#if term}}{{term}}{{/if}}" aria-label="Search all fields" title="Search all fields" class="form-control" placeholder="Search all fields" id="txt-find">
+                <span class="input-group-btn">
+                  <button class="btn btn-primary"><i class="icon icon-inverse icon-search"></i></button>
+                </span>
+              </div>
+              <label class="radio-inline">
+                <input type="radio" name="dataset" id="inlineRadio1" value="oafiledatanew" {{#unless ptab}}checked{{/unless}}> Office Actions
+              </label>
+              <label class="radio-inline">
+                <input type="radio" name="dataset" id="inlineRadio2" value="ptab" {{#if ptab}}checked{{/if}}> PTAB
+              </label>
+              <div style="margin-bottom: 0;" class="help-block">
+                <b><i>Examples: Search for law 112(f) ..... <code>"112\(f\)"</code>  or search for Art Unit .. <code>"Art Unit 3669"~2</code>  </i></b>
+                <!-- <a href="#void">Show advanced search</a> -->
+              </div>
+
+              <div class="tabs-results tabs-responsive btn-group hide">
+                <button aria-expanded="false" aria-haspopup="true" data-toggle="dropdown" class="btn btn-default dropdown-toggle hide" type="button">
+                  All<span class="badge">100</span> <span class="caret"></span>
+                </button>
+                <ul class="nav nav-tabs">
+                  <li class="active"><a data-toggle="tab" role="tab" href="#"><span>All</span><span class="badge">100</span></a></li>
+                  <li><a role="tab" data-toggle="tab" href="#"><span>Unassigned</span><span class="badge">45</span></a></li>
+                  <li><a role="tab" data-toggle="tab" href="#"><span>Partially assigned</span><span class="badge">34</span></a></li>
+                  <li><a role="tab" data-toggle="tab" href="#"><span>Fully assigned</span><span class="badge">3</span></a></li>
+                </ul>
+              </div>
+          </div>
+          <div class="main-wrapper row-grid">
+            <div class="app-sidebar filters keyline-right">
+              {{#unless accessToken}}
+              This Search engine is for Authorized users only.
+              <hr> For access, please contact Thomas Beach
+              {{/unless}}
+              <a tabindex="-1" id="filters"></a>
+              <div class="close-sidebar keyline-bottom clearfix">
+                <button class="btn-closeSidebar pull-right btn btn-sm btn-default btn-hover"><i class="icon icon-angle-double-left"></i> Close</button>
+              </div>
+              {{#if accessToken}}
+              <div class="filter-heading">
+                <span tabindex="0" class="h4">Refine by</span> <a class="filters-clear" href="">Clear</a>
+              </div>
+              {{/if}}
+
+              <!--  <form class="filters-accordion js-filterSwitch" role="form"> -->
+              <!-- <div class="h5" tabindex="0">Assignment</div> -->
+              <div class="filter-list">
+                <!--    <a class="filter-group-title" href="#void" data-toggle="collapse" data-target="#2filterGroup8">Filing year <i class="icon icon-angle-right pull-right"></i></a>
+        <div id="2filterGroup8" class="collapse">
+            <div class="filter-group-content">
+                <div class="form-group">
+                    <ul class="list-unstyled">
+                        <li><a href="">2014</a></li>
+                        <li><a href="">2013</a></li>
+                        <li><a href="">2012</a></li>
+                        <li><a href="">2011</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div> -->
+                {{#if accessToken}}
+                <a class="filter-group-title" href="#void" data-toggle="collapse" data-target="#2filterGroup1"><i class="icon icon-angle-right pull-right"></i> Filing date range</a>
+                {{/if}}
+                <div id="2filterGroup1" class="collapse">
+                  <div class="filter-group-content">
+                    <div class="row">
+                      <div class="form-group col-sm-6">
+                        <span class="input-icon icon icon-calendar-o"></span>
+                        <input name="fromdate" type="text" placeholder="Start" class="datepicker form-control" data-inputmask="'mask': 'm/d/y', 'placeholder': 'mm/dd/yyyy'" title="Start date" aria-label="Start date">
+                      </div>
+                      <div class="form-group col-sm-6">
+                        <span class="input-icon icon icon-calendar-o"></span>
+                        <input name="todate" type="text" placeholder="End" class="datepicker form-control" data-inputmask="'mask': 'm/d/y', 'placeholder': 'mm/dd/yyyy'" title="End date" aria-label="End date">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+
+                </form>
+                <!--  <a class="filter-group-title" href="#void" data-toggle="collapse" data-target="#2filterGroup2"><i class="icon icon-angle-right pull-right"></i> <span class="badge pull-right">1</span> Application type</a>
+        <div id="2filterGroup2" class="collapse">
+            <div class="filter-group-content">
+                <div class="form-group">
+                    <div class="checkbox">
+                        <label>
+                            <input checked type="checkbox">Assignment <span class="text-muted">(13)</span></label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox"> Change of name <span class="text-muted">(45)</span></label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox"> Trademark <span class="text-muted">(18)</span></label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox"> Certification <span class="text-muted">(32)</span></label>
+                    </div>
+                    <div class="checkbox">
+                        <label>
+                            <input type="checkbox"> Service <span class="text-muted">(43)</span></label>
+                    </div>
+                    <a href="#void">Show 12 more...</a>
+                </div>
+            </div>
+        </div>
+            <a class="filter-group-title" href="#void" data-toggle="collapse" data-target="#2filterGroup5"><i class="icon icon-angle-right pull-right"></i> Applicant</a>
+        <div id="2filterGroup5" class="collapse">
+            <div class="filter-group-content">
+                <div class="form-group">
+                    <div class="form-group">
+                        <ul class="list-unstyled">
+                            <li><a href="">JOHN SMITH ET AL</a></li>
+                            <li><a href="">JANE LLC</a></li>
+                            <li><a href="">JOHNSON CO</a></li>
+                            <li><a href="">INITECH</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="h5" tabindex="0">Assignee (Owner)</div>
+    <div class="filter-list">
+            <a class="filter-group-title" href="#void" data-toggle="collapse" data-target="#3filterGroup8">Assignee <i class="icon icon-angle-right pull-right"></i></a>
+        <div id="3filterGroup8" class="collapse">
+            <div class="filter-group-content">
+                <div class="form-group">
+                    <ul class="list-unstyled">
+                        <li><a href="">John Smith Et al.</a></li>
+                        <li><a href="">Jane LLC</a></li>
+                        <li><a href="">Johnson Co.</a></li>
+                        <li><a href="">Initech</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+            <a class="filter-group-title" href="#void" data-toggle="collapse" data-target="#3filterGroup2"><i class="icon icon-angle-right pull-right"></i> Assignee country</a>
+        <div id="3filterGroup2" class="collapse">
+            <div class="filter-group-content">
+                <div class="form-group">
+                    <ul class="list-unstyled">
+                        <li><a href="">United States</a></li>
+                        <li><a href="">France</a></li>
+                        <li><a href="">Germany</a></li>
+                        <li><a href="">Hungary</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+          <div class="padding-2">
+        <a id="supportInfo" tabindex="-1"></a>
+        <h3 class="margin-top-0">Help</h3>
+        <h4 class="h6 text-uppercase text-muted">Resources</h4>
+        <ul class="list-unstyled">
+            <li><a href="/help">Search query suggestions</a></li>
+        </ul>
+        <h4 class="h6 text-uppercase text-muted"><abbr title="Frequently Asked Questions">Faq</abbr></h4>
+        <ul class="list-unstyled">
+            <li><a href="">How many office actions are loaded?</a></li>
+            <li><a href="">When are updates applied?</a></li>
+        </ul>
+    </div>-
+    </div>
+<!-- </form> -->
+
+                <!-- <form class="filters-flat js-filterSwitch hide" role="form"> -->
+                <!--  <div class="filter">
+        <label for="s2id_autogen2" class="h5 control-label">Select year</label>
+        <select class="select2 form-control">
+            <option>2015</option>
+            <option>2014</option>
+            <option>2013</option>
+            <option>2012</option>
+        </select>
+    </div>
+    <div class="filter">
+        <div class="h5" tabindex="0">Filing date range</div>
+        <div class="form-group">
+            <span class="input-icon icon icon-calendar-o"></span>
+            <input type="text" placeholder="Start" class="datepicker form-control" data-inputmask="'mask': 'm/d/y', 'placeholder': 'mm/dd/yyyy'" title="Start date" aria-label="Start date">
+        </div>
+        <div class="form-group margin-bottom-0">
+            <span class="input-icon icon icon-calendar-o"></span>
+            <input type="text" placeholder="End" class="datepicker form-control" data-inputmask="'mask': 'm/d/y', 'placeholder': 'mm/dd/yyyy'" title="End date" aria-label="End date">
+        </div>
+    </div>
+    <div class="filter">
+        <div class="h5" tabindex="0">Applicant</div>
+        <label for="s2id_autogen4" class="control-label">Select applicant</label>
+        <select class="select2 form-control">
+            <option>All</option>
+            <option>JOHN SMITH ET AL</option>
+            <option>JANE LLC</option>
+            <option>JOHNSON CO</option>
+            <option>INITECH</option>
+        </select>
+    </div>
+    <div class="filter">
+        <div class="h5" tabindex="0">Application type</div>
+        <div class="form-group margin-bottom-0">
+            <div class="checkbox">
+                <label>
+                    <input checked type="checkbox">Assignment <span class="text-muted">(13)</span>
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox"> Change of name <span class="text-muted">(45)</span>
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox"> Trademark <span class="text-muted">(18)</span>
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox"> Certification <span class="text-muted">(32)</span>
+                </label>
+            </div>
+            <div class="checkbox">
+                <label>
+                    <input type="checkbox"> Service <span class="text-muted">(43)</span>
+                </label>
+            </div>
+            <a href="#void">Show 12 more...</a>
+        </div>
+    </div>
+    <div class="filter">
+        <fieldset>
+            <legend class="h5 control-label">Assignee country</legend>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="countryOpts" id="rdo-usa" value="" checked>United States<span class="help-block">(including all US territories)</span>
+                </label>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="countryOpts" id="rdo-france" value="">France</label>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="countryOpts" id="rdo-germany" value="">Germany</label>
+            </div>
+            <div class="radio">
+                <label>
+                    <input type="radio" name="countryOpts" id="rdo-gungary" value="">Hungary</label>
+            </div>
+        </fieldset>-->
+              </div>
+
+            </div>
+            <div class="row-grid">
+              <div class="main-content col">
+                <div class="panel-body">
+                  <div class="results-header">
+                    <a tabindex="-1" id="searchResults"></a>
+                    <a href="#void" class="link-sidebar"><i class="icon icon-columns"></i>Refine</a>
+                    <div class="pg-actions clearfix">
+
+
+                      <h3 class="h4 pull-left margin-top-0"><span style="font-weight: 400">{{#if total}}{{total}} results took {{took}} ms {{/if}}</span></h3>
+                      <div class="btn-pgActions btn-group">
+                        {{#if term}}
+                          <button aria-expanded="false" aria-haspopup="true" data-toggle="dropdown" class="btn btn-default dropdown-toggle" id="btn-pgActions">Download <span class="caret"></span></button>
+                          <ul aria-labelledby="btn-pgActions" class="dropdown-menu">
+                            <!-- <li role="presentation"><a href="#">Print</a></li>
+                                                <li class="divider" role="separator"></li> -->
+                            <!-- <li role="presentation"><a href="#">Download Excel</a></li> -->
+                            <li role="presentation"><a target="_BLANK" href="/download?q={{term}}">Download CSV</a></li>
+                          </ul>
+                          {{/if}}
+                      </div>
+                    </div>
+                    <!-- <ul class="list-keywords list-unstyled margin-bottom-0">
+                                        <li tabindex="0" class="filter-value"><span>Application type: Service</span> <i class="icon icon-close icon-muted"></i></li>
+                                        <li tabindex="0" class="filter-value"><span>Applicant: JANE LLC</span> <i class="icon icon-close icon-muted"></i></li>
+                                    </ul> -->
+                  </div>
+                  <div class="table--searchResults js-tableSwitch">
+                  {{#if term}}
+                      <div class="table--actions row">
+                        <div class="col-xs-6">
+
+                          <h2> Search Term: <span class="label label-success subtle">{{term}}</span> </h2>
+                          <h3><a href="javascript:void(0);" onclick="resizeText(1)" id="plustext"> [+] Make results bigger</a> | <a href="javascript:void(0);" onclick="resizeText(-1)" id="minustext">[-] Make results smaller</a></h3>
+                        </div>
+                        <div class="col-xs-6">
+                          <!-- <div class="btn-group dropdown pull-right">
+                <button id="btn-displayOpts" type="button" class="btn-displayOpts btn btn-default dropdown-toggle" data-toggle="dropdown">10 per page <span class="caret"></span></button>
+                <ul class="dropdown-menu" role="menu" aria-labelledby="btn-displayOpts">
+                    <li role="presentation" class="dropdown-header">Show up to</li>
+                    <li role="presentation" class="active"><a role="menuitem" tabindex="-1" href="#">10 items</a></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#">25 items</a></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#">50 items</a></li>
+                    <li role="presentation"><a role="menuitem" tabindex="-1" href="#">100 items</a></li>
+                </ul>
+            </div> -->
+                        </div>
+                      </div>
+                      {{/if}}
+                        <div class="table-responsive">
+                          {{{body}}}
+                        </div>
+                  </div>
+                  <div class="table--border js-tableSwitch hide">
+                    <div class="table--actions row">
+                      <div class="col-xs-12">
+                        <div class="btn-group dropdown">
+                          <button id="btn-displayOpts" type="button" class="btn-displayOpts btn btn-default dropdown-toggle" data-toggle="dropdown">10 per page <span class="caret"></span></button>
+                          <ul class="dropdown-menu" role="menu" aria-labelledby="btn-displayOpts">
+                            <li role="presentation" class="dropdown-header">Show up to</li>
+                            <li role="presentation" class="active"><a role="menuitem" tabindex="-1" href="#">10 items</a></li>
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">25 items</a></li>
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">50 items</a></li>
+                            <li role="presentation"><a role="menuitem" tabindex="-1" href="#">100 items</a></li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="table-responsive">
+                      <table class="table-bordered table table-sortable table-hover table-inverse">
+                        <thead>
+                          <tr>
+                            <th class="sortable"><a href="#void">Application
+                                    <abbr title="Number">#</abbr><span class="icon icon-sort icon-inverse"></span></a></th>
+                            <th class="sortable"><a href="#void">Docket
+                                    <abbr title="Number">#</abbr><span class="icon icon-sort icon-inverse"></span></a></th>
+                            <th>Title</th>
+                            <th class="sortable"><a href="#void">Filing Date<span class="icon icon-caret-down icon-inverse"></span></a></th>
+                            <th class="sortable"><a href="#void">Status<span class="icon icon-sort icon-inverse"></span></a></th>
+                            <th>IFW</th>
+                            <th class="table-config-column">
+                              <button type="button" class="btn-tblCols" title="Show and hide columns"><i class="icon icon-ellipsis-h icon-inverse"></i></button>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            <td><a href="master-detail-app.html">12/379,876</a></td>
+                            <td>US1234-767</td>
+                            <td>Lorem ipsum dolor sit amet, consectetur adipiscing elit. </td>
+                            <td>12/13/2014</td>
+                            <td>Issued
+                              <p class="text-muted">01/14/15</p>
+                            </td>
+                            <td colspan="2"><a href="#void">View</a></td>
+                          </tr>
+                          <tr>
+                            <td><a href="master-detail-app.html">12/480,876</a></td>
+                            <td>US1234-767</td>
+                            <td>Lorem ipsum dolor sit amet, consectetur adipiscing elit. </td>
+                            <td>11/13/2014</td>
+                            <td>Issued
+                              <p class="text-muted">12/14/15</p>
+                            </td>
+                            <td colspan="2"><a href="#void">View</a></td>
+                          </tr>
+                          <tr>
+                            <td><a href="master-detail-app.html">12/591,876</a></td>
+                            <td>US1234-767</td>
+                            <td>Lorem ipsum dolor sit amet, consectetur adipiscing elit. </td>
+                            <td>10/13/2014</td>
+                            <td>Issued
+                              <p class="text-muted">11/14/15</p>
+                            </td>
+                            <td colspan="2"><a href="#void">View</a></td>
+                          </tr>
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <!-- <div class="text-center">
+                                    <div class="pager btn-group">
+                                        <a disabled="" href="#" class="btn btn-default"><i class="icon icon-angle-left"></i></a>
+                                        <a href="#" class="btn btn-default active">1</a>
+                                        <a href="#" class="btn btn-default">2</a>
+                                        <a href="#" class="btn btn-default">3</a>
+                                        <a href="#" class="btn btn-default">4</a>
+                                        <a href="#" class="btn btn-default">5</a>
+                                        <a href="#" class="btn btn-default"><i class="icon icon-angle-right"></i></a>
+                                    </div>
+                                </div> -->
+                </div>
+              </div>
+              <aside class="aside collections padding-2 hide">
+                <a id="supportInfo" tabindex="-1"></a>
+                <div class="panel--collections panel panel-default">
+                  <div class="panel-heading">
+                    <div class="panel__title">
+                      <button class="close" type="button" aria-label="Close"><span>&times;</span></button>
+                      <span class="icon icon-star"></span> <strong>Collections</strong>
+                    </div>
+                  </div>
+                  <div class="panel__actionBar">
+                    <span class="icon icon-download icon-inverse" role="button" data-toggle="tooltip" data-placement="top" aria-label="Download all" title="Download all"></span>
+                    <span class="icon icon-print icon-inverse" role="button" data-toggle="tooltip" data-placement="top" aria-label="Print" title="Print"></span>
+                  </div>
+                  <div class="panel-body">
+                    <table class="table--collections table table-hover table-condensed">
+                      <thead>
+                        <tr>
+                          <th><a href="#collections1" data-toggle="collapsible" aria-label="Expand or Collapse" aria-expanded="false"><i aria-hidden="true" class="icon icon-plus-square-o"></i></a></th>
+                          <th><a class="link-appNumSearch" href="#void">US <span class="appNum">11315345</span></a></th>
+                          <th><a data-placement="top" data-toggle="tooltip" title="" aria-label="Remove from Collections" href="" data-original-title="Remove from Collections"><i aria-hidden="true" class="icon icon-close icon-muted"></i></a></th>
+                        </tr>
+                      </thead>
+                      <tbody id="collections1">
+                        <tr class="hide" aria-hidden="true">
+                          <td><a href="#void" class="pull-right" aria-label="Download"><i class="icon icon-download" data-toggle="tooltip" data-placement="left" data-original-title="Download Transmittal of New Application"></i></a></td>
+                          <td><a href="" aria-label="Open Transmittal of New Application">Transmittal of New Application</a></td>
+                          <td><a data-original-title="Remove from Collections" href="" aria-label="Remove from Collections" title="" data-toggle="tooltip" data-placement="top"><i class="icon icon-close icon-muted" aria-hidden="true"></i></a></td>
+                        </tr>
+                        <tr class="hide" aria-hidden="true">
+                          <td><a href="" class="pull-right" aria-label="Download"><i class="icon icon-download" data-toggle="tooltip" data-placement="left" data-original-title="Download Specification"></i></a></td>
+                          <td><a href="" aria-label="Open Specification">Specification</a></td>
+                          <td><a data-original-title="Remove from Collections" href="" aria-label="Remove from Collections" title="" data-toggle="tooltip" data-placement="top"><i class="icon icon-close icon-muted" aria-hidden="true"></i></a></td>
+                        </tr>
+                        <tr class="hide" aria-hidden="true">
+                          <td><a href="" class="pull-right" aria-label="Download"><i class="icon icon-download" data-toggle="tooltip" data-placement="left" data-original-title="Download Nonpublication request from applicant"></i></a></td>
+                          <td><a href="" aria-label="Open Nonpublication request from applicant">Nonpublication request from applicant</a></td>
+                          <td><a data-original-title="Remove from Collections" href="" aria-label="Remove from Collections" title="" data-toggle="tooltip" data-placement="top"><i class="icon icon-close icon-muted" aria-hidden="true"></i></a></td>
+                        </tr>
+                        <tr class="hide" aria-hidden="true">
+                          <td><a href="" target="_blank" class="pull-right" aria-label="Download Application Data Sheet"><i class="icon icon-download" data-toggle="tooltip" data-placement="left" data-original-title="Download Application Data Sheet"></i></a></td>
+                          <td><a href="" target="_blank" aria-label="Open Application Data Sheet">Application Data Sheet</a></td>
+                          <td><a data-original-title="Remove from Collections" href="" aria-label="Remove from Collections" title="" data-toggle="tooltip" data-placement="top"><i class="icon icon-close icon-muted" aria-hidden="true"></i></a></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <table class="table--collections table table-hover table-condensed">
+                      <thead>
+                        <tr>
+                          <th><a href="#collections2" data-toggle="collapsible" aria-label="Expand or Collapse" aria-expanded="false"><i aria-hidden="true" class="icon icon-plus-square-o"></i></a></th>
+                          <th><a class="link-appNumSearch" href="#void">US <span class="appNum">11315342</span></a></th>
+                          <th><a data-placement="top" data-toggle="tooltip" title="" aria-label="Remove from Collections" href="" data-original-title="Remove from Collections"><i aria-hidden="true" class="icon icon-close icon-muted"></i></a></th>
+                        </tr>
+                      </thead>
+                      <tbody id="collections2">
+                        <tr class="hide" aria-hidden="true">
+                          <td><a href="#void" class="pull-right" aria-label="Download"><i class="icon icon-download" data-toggle="tooltip" data-placement="left" data-original-title="Download Transmittal of New Application"></i></a></td>
+                          <td><a href="" aria-label="Open Transmittal of New Application">Transmittal of New Application</a></td>
+                          <td><a data-original-title="Remove from Collections" href="" aria-label="Remove from Collections" title="" data-toggle="tooltip" data-placement="top"><i class="icon icon-close icon-muted" aria-hidden="true"></i></a></td>
+                        </tr>
+                        <tr class="hide" aria-hidden="true">
+                          <td><a href="" class="pull-right" aria-label="Download"><i class="icon icon-download" data-toggle="tooltip" data-placement="left" data-original-title="Download Specification"></i></a></td>
+                          <td><a href="" aria-label="Open Specification">Specification</a></td>
+                          <td><a data-original-title="Remove from Collections" href="" aria-label="Remove from Collections" title="" data-toggle="tooltip" data-placement="top"><i class="icon icon-close icon-muted" aria-hidden="true"></i></a></td>
+                        </tr>
+                        <tr class="hide" aria-hidden="true">
+                          <td><a href="" class="pull-right" aria-label="Download"><i class="icon icon-download" data-toggle="tooltip" data-placement="left" data-original-title="Download Nonpublication request from applicant"></i></a></td>
+                          <td><a href="" aria-label="Open Nonpublication request from applicant">Nonpublication request from applicant</a></td>
+                          <td><a data-original-title="Remove from Collections" href="" aria-label="Remove from Collections" title="" data-toggle="tooltip" data-placement="top"><i class="icon icon-close icon-muted" aria-hidden="true"></i></a></td>
+                        </tr>
+                        <tr class="hide" aria-hidden="true">
+                          <td><a href="" target="_blank" class="pull-right" aria-label="Download Application Data Sheet"><i class="icon icon-download" data-toggle="tooltip" data-placement="left" data-original-title="Download Application Data Sheet"></i></a></td>
+                          <td><a href="" target="_blank" aria-label="Open Application Data Sheet">Application Data Sheet</a></td>
+                          <td><a data-original-title="Remove from Collections" href="" aria-label="Remove from Collections" title="" data-toggle="tooltip" data-placement="top"><i class="icon icon-close icon-muted" aria-hidden="true"></i></a></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                    <table class="table--collections table table-hover table-condensed">
+                      <thead>
+                        <tr>
+                          <th><a href="#collections3" data-toggle="collapsible" aria-label="Expand or Collapse" aria-expanded="false"><i aria-hidden="true" class="icon icon-plus-square-o"></i></a></th>
+                          <th><a class="link-appNumSearch" href="#void">US <span class="appNum">11294613</span></a></th>
+                          <th><a data-placement="top" data-toggle="tooltip" title="" aria-label="Remove from Collections" href="" data-original-title="Remove from Collections"><i aria-hidden="true" class="icon icon-close icon-muted"></i></a></th>
+                        </tr>
+                      </thead>
+                      <tbody id="collections3">
+                        <tr class="hide" aria-hidden="true">
+                          <td><a href="#void" class="pull-right" aria-label="Download"><i class="icon icon-download" data-toggle="tooltip" data-placement="left" data-original-title="Download Transmittal of New Application"></i></a></td>
+                          <td><a href="" aria-label="Open Transmittal of New Application">Transmittal of New Application</a></td>
+                          <td><a data-original-title="Remove from Collections" href="" aria-label="Remove from Collections" title="" data-toggle="tooltip" data-placement="top"><i class="icon icon-close icon-muted" aria-hidden="true"></i></a></td>
+                        </tr>
+                        <tr class="hide" aria-hidden="true">
+                          <td><a href="" class="pull-right" aria-label="Download"><i class="icon icon-download" data-toggle="tooltip" data-placement="left" data-original-title="Download Specification"></i></a></td>
+                          <td><a href="" aria-label="Open Specification">Specification</a></td>
+                          <td><a data-original-title="Remove from Collections" href="" aria-label="Remove from Collections" title="" data-toggle="tooltip" data-placement="top"><i class="icon icon-close icon-muted" aria-hidden="true"></i></a></td>
+                        </tr>
+                        <tr class="hide" aria-hidden="true">
+                          <td><a href="" class="pull-right" aria-label="Download"><i class="icon icon-download" data-toggle="tooltip" data-placement="left" data-original-title="Download Nonpublication request from applicant"></i></a></td>
+                          <td><a href="" aria-label="Open Nonpublication request from applicant">Nonpublication request from applicant</a></td>
+                          <td><a data-original-title="Remove from Collections" href="" aria-label="Remove from Collections" title="" data-toggle="tooltip" data-placement="top"><i class="icon icon-close icon-muted" aria-hidden="true"></i></a></td>
+                        </tr>
+                        <tr class="hide" aria-hidden="true">
+                          <td><a href="" target="_blank" class="pull-right" aria-label="Download Application Data Sheet"><i class="icon icon-download" data-toggle="tooltip" data-placement="left" data-original-title="Download Application Data Sheet"></i></a></td>
+                          <td><a href="" target="_blank" aria-label="Open Application Data Sheet">Application Data Sheet</a></td>
+                          <td><a data-original-title="Remove from Collections" href="" aria-label="Remove from Collections" title="" data-toggle="tooltip" data-placement="top"><i class="icon icon-close icon-muted" aria-hidden="true"></i></a></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </aside>
+
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="pane-right aside keyline-bottom">
+        <!--F <div class="padding-2">
+        <a id="supportInfo" tabindex="-1"></a>
+        <h3 class="margin-top-0">Help</h3>
+        <h4 class="h6 text-uppercase text-muted">Resources</h4>
+        <ul class="list-unstyled">
+            <li><a href="">Search query suggestions</a></li>
+            <li><a href="">Instructional videos</a></li>
+        </ul>
+        <h4 class="h6 text-uppercase text-muted"><abbr title="Frequently Asked Questions">Faq</abbr></h4>
+        <ul class="list-unstyled">
+            <li><a href="">How do I add an application to Collections?</a></li>
+            <li><a href="">What is advanced search?</a></li>
+        </ul>
+    </div> -->
+      </div>
+
+    </div>
+    <div id="modal-appSettings" class="modal fade in" tabindex="-1" role="dialog" aria-labelledby="hd-appSettings">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <button data-dismiss="modal" class="close" type="button"><span aria-hidden="true">×</span><span class="sr-only">Close</span></button>
+            <span class="h4 modal-title" id="hd-appSettings">Application settings</span>
+          </div>
+          <div class="modal-body">
+            <div class="nav-settings tabs-responsive btn-group">
+              <button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Notifications <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu">
+                <li class="active"><a href="#" data-toggle="tab" role="tab">Notifications</a></li>
+                <li><a href="#" data-toggle="tab" role="tab">Tracked Systems</a></li>
+                <li><a href="#" data-toggle="tab" role="tab">Reports</a></li>
+                <li class="disabled" data-toggle="tab" role="tab"><a href="#">Favorites</a></li>
+              </ul>
+            </div>
+            <!-- <form class="form-appSettings form-horizontal" role="form" style="margin-left: 20px;"> -->
+            <fieldset>
+              <legend>Select notification types you would like to receive:</legend>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" checked value="option1" id="chk1" name="optionsCheckboxes">System alerts</label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" checked value="option1" id="chk2" name="optionsCheckboxes">New system added or removed</label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" value="option1" id="chk3" name="optionsCheckboxes">Report completion</label>
+              </div>
+              <div class="checkbox">
+                <label>
+                  <input type="checkbox" value="option1" id="chk4" name="optionsCheckboxes">Data thresholds</label>
+              </div>
+            </fieldset>
+            <!-- </form> -->
+          </div>
+          <div class="modal-footer">
+            <button class="pull-left btn btn-default" type="button" data-dismiss="modal">Cancel</button>
+            <button class="btn btn-primary" type="button" data-dismiss="modal">Save Changes</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <div class="config-ui">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <button class="btn btn-icon-only toggle"><span class="icon icon-inverse"></span></button><span tabindex="0" class="panel__title">UI Configuration</span></div>
+        <div class="panel-body">
+          <ul class="list-unstyled">
+            <li class="switch switch--container">
+              <input type="checkbox" checked id="chk-container" class="js-chkPanels" autocomplete="off">
+              <label data-off="Fixed" data-on="Fluid" for="chk-container">Page container</label>
+            </li>
+            <li class="switch switch--pane">
+              <input type="checkbox" data-target="pane-left" id="chk-leftPane" class="js-chkPanels" autocomplete="off">
+              <label data-off="OFF" data-on="ON" for="chk-leftPane">Left pane</label>
+            </li>
+            <li class="switch switch--pane">
+              <input type="checkbox" data-target="pane-right" id="chk-rightPane" class="js-chkPanels" autocomplete="off">
+              <label data-off="OFF" data-on="ON" for="chk-rightPane">Right pane</label>
+            </li>
+            <li class="switch">
+              <input type="checkbox" data-target="tabs-results" id="chk-tabs" autocomplete="off">
+              <label data-off="OFF" data-on="ON" for="chk-tabs">Tabs</label>
+            </li>
+            <li class="switch">
+              <input type="checkbox" data-target="collections" id="chk-collections" autocomplete="off">
+              <label data-off="OFF" data-on="ON" for="chk-collections">Collections panel</label>
+            </li>
+            <li class="switch">
+              <input type="checkbox" data-target="list-keywords" checked id="chk-keywords" autocomplete="off">
+              <label data-off="OFF" data-on="ON" for="chk-keywords">Filter keywords</label>
+            </li>
+            <li class="divider"><span tabindex="0" class="h5">Filter style</span></li>
+            <li class="switch">
+              <input type="radio" data-target="filters-accordion" checked name="filtersSwitch" id="rdo-accordion" autocomplete="off">
+              <label data-off="OFF" data-on="ON" for="rdo-accordion">Accordion</label>
+            </li>
+            <li class="switch">
+              <input type="radio" data-target="filters-flat" name="filtersSwitch" id="rdo-flat" autocomplete="off">
+              <label data-off="OFF" data-on="ON" for="rdo-flat">Flat</label>
+            </li>
+            <li class="divider"><span tabindex="0" class="h5">Search results</span></li>
+            <li class="switch">
+              <input type="radio" data-target="table--searchResults" checked name="tblsSwitch" class="chk-switchTbl" id="rdo-expRows" autocomplete="off">
+              <label data-off="OFF" data-on="ON" for="rdo-expRows">Expanding rows</label>
+            </li>
+            <!-- <li class="switch">
+                        <input type="radio" data-target="table--multiline" name="tblsSwitch" class="chk-switchTbl" id="rdo-multiline" autocomplete="off">
+                        <label data-off="OFF" data-on="ON" for="rdo-multiline">Multi-line</label>
+                    </li> -->
+            <li class="switch">
+              <input type="radio" data-target="table--border" name="tblsSwitch" class="chk-switchTbl" id="rdo-bordered" autocomplete="off">
+              <label data-off="OFF" data-on="ON" for="rdo-bordered">Bordered</label>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="designpatterns/1.x/generated/scripts/vendor.js"></script>
+  <script src="designpatterns/1.x/generated/scripts/plugins.js"></script>
+  <script src="https://components.uspto.gov/js/ais/2-4-pattern-library.js"></script>
+  <script src="designpatterns/1.x/generated/scripts/appDemo.js"></script>
+  <script src="scripts/script.js"></script>
+
+  <script type="text/javascript">
+    function resizeText(multiplier) {
+      if (document.getElementById('results').style.fontSize == "") {
+        document.getElementById('results').style.fontSize = "1.0em";
+      }
+      document.getElementById('results').style.fontSize = parseFloat(document.getElementById('results').style.fontSize) + (multiplier * 0.2) + "em";
+    }
+  </script>
+
+</body>
+
+</html>
