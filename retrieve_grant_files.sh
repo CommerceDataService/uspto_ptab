@@ -65,7 +65,7 @@ processingTime=`date +%Y%m%d-%H%M%S`
 scriptName=$0
 statusDirectory=logs
 baseURL=$()
-dropLocation="files"
+dropLocation="files/GRANTS"
 startDate=1976
 endDate=$(date +%Y) 
 retrieveAll=false
@@ -155,50 +155,51 @@ fi
 #unzip all zip files unless they have already been unzipped
 log "INFO" "Starting file unzipping process"
 
+find $dropLocation -type f -name '*.zip' -exec sh -c 'unzip -n -d `dirname {}` {}' ';'
 
-find $dropLocation -type f -name "*.zip" -exec unzip -n {} -d $dropLocation \;
+#find $dropLocation -type f -name "*.zip" -exec unzip -n {} -d $dropLocation/$begDate \;
 
 log "INFO" "File unzip process complete"
 
-log "INFO" "Starting file parsing process"
+#log "INFO" "Starting file parsing process"
  
  #parse all pdf files that have not already been parsed
  
-begDate=$startDate
-echo $begDate
-while [ $begDate -le $endDate ]
-do
-  for f in $dropLocation/$begDate
-  do
-    if [[ $f == *.zip ]]
-    then
-      continue;
-    else
-      echo $f
-      if [ -d "$f" ]
-      then
-	echo "$f/*.pdf"
-        for i in $f/*.pdf
-        do
-          fname=$(basename "$i")
-          fname="${fname%.*}"
-	  echo $fname
-          if [ ! -f "$f/$fname.txt" ]
-          then
-            echo "parsing $i"
-            log "INFO" "Parsing document: $i to ${i%.*}.txt"
-            #python parse.py "$i" >> $statusDirectory/retrieve-log-$processingTime 2>&1
-           fi
-        done
-      else
-        log "INFO" "No files to parse"
-      fi
-    fi
-  done
-  begDate=$(date '+%C%y%m%d' -d "$begDate+7 days")
-done
+#begDate=$startDate
+#echo $begDate
+#while [ $begDate -le $endDate ]
+#do
+#  for f in $dropLocation/$begDate
+#  do
+#    if [[ $f == *.zip ]]
+#    then
+#      continue;
+#    else
+#      echo $f
+#      if [ -d "$f" ]
+#      then
+#	echo "$f/*.pdf"
+#        for i in $f/*.pdf
+#        do
+#          fname=$(basename "$i")
+#          fname="${fname%.*}"
+#	  echo $fname
+#          if [ ! -f "$f/$fname.txt" ]
+#          then
+#            echo "parsing $i"
+#            log "INFO" "Parsing document: $i to ${i%.*}.txt"
+#            #python parse.py "$i" >> $statusDirectory/retrieve-log-$processingTime 2>&1
+#           fi
+#        done
+#      else
+#        log "INFO" "No files to parse"
+#      fi
+#    fi
+#  done
+#  begDate=$(date '+%C%y%m%d' -d "$begDate+7 days")
+#done
  
- log "INFO" "File parsing process complete"
+# log "INFO" "File parsing process complete"
 
 
 log "INFO" "-[JOB END]-- $(date): ------------"
