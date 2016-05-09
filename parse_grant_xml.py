@@ -38,35 +38,62 @@ def splitFiles(fname):
     try:
         filecontent = []
         fn = ""
+        filetype = ""
         dir_path = os.path.join(os.path.dirname(fname),os.path.splitext(fname)[0])
         if not os.path.exists(dir_path):
             os.makedirs(dir_path)
         with open(os.path.abspath(fname)) as fd:
             filecontent.append(fd.readline())
             for line in fd:
-                if line.strip().startswith("<?xml version=\"1.0\" encoding=\"UTF-8\"?>"):
-                    #print("end of doc")
-                    if not os.path.isfile(os.path.join(dir_path)):
+                if line.strip().startswith("<?xml version"):
+                    print("xml line: "+line)
+                    if not os.path.isfile(os.path.join(dir_path,fn)):
                         with open(os.path.join(dir_path,fn),'w') as outfile:
                             outfile.writelines(filecontent)
                     else:
-                        logging.info("--file: "+fn+" already exists")
-                        print("file exists")
+                        logging.info("--File: "+fn+" already exists")
                     del filecontent[:]
-                    filecontent.append(fd.readline())
-                elif line.strip().startswith("<us-patent-grant"):
-                    searchobj = re.findall('file="(.*?)"', line)
-                    fn = searchobj[0]
-                    #print(fn)
+                    fn = ""
+                    filetype = ""
                     filecontent.append(line)
+                #elif line.strip().startswith("<!DOCTYPE"):
+                #    lwords = line.split()
+                #    if lwords[1] == "us-patent-grant":
+                #        filetype = lwords[1]
+                #        nameobj = re.findall('file="(.*?)"', fd.readline())
+                #        fn = nameobj[0]
+                #        fn = changeExt(fn, 'xml')
+                #    elif lwords[1] == "sequence-cwu":
+                #        filetype = lwords[1]
+                #    filecontent.append(line)
+                elif line.strip().startswith("<us-patent-grant"):
+                    print("p")
+                    print("line: "+line)
+                    filetype = "p"
+                    nameobj = re.findall('file="(.*?)"', line)
+                    fn = changeExt(nameobj[0], 'xml')
+                    filecontent.append(line)
+                elif line.strip().startswith("<sequence-cwu"):
+                    print("s")
+                    print("line: "+line)
+                    filetype = "s"
+                    filecontent.append(line)
+                elif filetype == "s" and line.strip().startswith("<doc-number>"):
+                    finddocnum = re.findall('<doc-number>(.*?)<', line)
+                    fn = finddocnum[0]
+                    filecontent.append(line)
+                elif filetype == "s" and line.strip().startswith("<date>"):
+                    filecontent.append(line)
+                    finddate = re.findall('<date>(.*?)<', line)
+                    fn += "-"+finddate[0]+"-sequence.xml"
                 else:
                     filecontent.append(line)
-            if not os.path.isfile(os.path.join(dir_path)):
+            if not os.path.isfile(os.path.join(dir_path,fn)):
                 with open(os.path.join(dir_path,fn),'w') as outfile:
                     outfile.writelines(filecontent)
-                    #print("last file")
     except IOError as e:
         logging.error("I/O error({0}): {1}".format(e.errno,e.strerror))
+        raise
     except:
         logging.error("Unexpected error:", sys.exc_info()[0])
         raise
@@ -75,20 +102,32 @@ def splitFiles(fname):
 #and writing the results out to a json file
 def parseXML(dir_name):
     try:
-        for file in dir_name:
-            with open(os.path.abspath(file)) as fd:
-                fn = changeExt(fd,'json')
-                print(fn)
-                doc = xmltodict.parse(fd.read())
-                doc_info = doc['us-patent-grant']['us-bibliographic-data-grant']['publication-reference']['document-id']
-                doc_info['appid'] = doc_info.pop('doc-number')
-                doc_info['doc_date'] = doc_info.pop('date')
-                #textdata - not sure what this should be set to.....
+        if os.path.isdir(dir_name):
+            for file in os.listdir(dir_name):
+                if file.endswith(".xml") and not file.endswith("sequence.xml"):
+                    print("file: "+os.path.join(dir_name,file))
+                    fn = changeExt(file,'json')
+                    if not os.path.isfile(os.path.join(dir_name,fn)):
+                        with open(os.path.join(dir_name,file)) as fd:
+                            #print(fd.read())
+                            doc = xmltodict.parse(fd.read())
+                            doc_info = doc['us-patent-grant']['us-bibliographic-data-grant']['publication-reference']['document-id']
+                            doc_info['appid'] = doc_info.pop('doc-number')
+                            doc_info['doc_date'] = doc_info.pop('date')
+                            #textdata - not sure what this should be set to.....
 
-                #transform output to json and save to file with same name
-                with open(fn,'w') as outfile:
-                    json.dump(doc,outfile)
-                    logging.info("-- Processing of XML file complete")
+                            #transform output to json and save to file with same name
+                            with open(os.path.join(dir_name,fn),'w') as outfile:
+                                print("in write to file")
+                                json.dump(doc,outfile)
+                                logging.info("-- Processing of XML file complete")
+                    else:
+                        logging.info("--File: "+fn+" already exists.")
+        else:
+            logging.error("Directory: "+dir_name+" does not exist")
+    except KeyError as e:
+        logging.error("File: "+fn+" Key Error: {0} ".format(e))
+        pass
     except IOError as e:
         logging.error("I/O error({0}): {1}".format(e.errno,e.strerror))
     except:
@@ -136,10 +175,11 @@ def sendToSolr(core, json):
 def processFile(fname):
     logging.info("-- Processing file: "+fname)
     dir_path = os.path.join(os.path.dirname(fname),os.path.splitext(fname)[0])
+    #print("dir_path: "+dir_path)
     if (args.skipsplit):
         logging.info("-- Skipping File Split process")
         logging.info("-- Starting XML Parse process")
-        #parseXML(dir_path)
+        parseXML(dir_path)
         if (args.skipsolr):
             logging.info("-- Skipping Solr process.")
         else:
@@ -149,7 +189,7 @@ def processFile(fname):
         logging.info("-- Starting File Split process")
         splitFiles(fname)
         logging.info("-- Starting XML Parse process")
-        #parseXML(dir_path)
+        parseXML(dir_path)
         if (args.skipsolr):
             logging.info("-- Skipping Solr process") 
         else:
