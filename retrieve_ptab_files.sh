@@ -65,7 +65,7 @@ processingTime=`date +%Y%m%d-%H%M%S`
 scriptName=$0
 statusDirectory=logs
 baseURL="https://bulkdata.uspto.gov/data2/patent/trial/appeal/board/"
-dropLocation="files"
+dropLocation="files/PTAB"
 startDate=19970702
 endDate=$(date +%Y%m%d) 
 retrieveAll=false
@@ -190,7 +190,7 @@ do
           if [ ! -f "$f/PDF_image/$fname.txt" ]
           then
             log "INFO" "Parsing document: $i to ${i%.*}.txt"
-            python parse.py "$i" >> $statusDirectory/retrieve-log-$processingTime 2>&1
+            python parse_pdf.py "$i" >> $statusDirectory/retrieve-log-$processingTime 2>&1
             # leaving this cURL command in so we can use it for reference or debugging
             # curl -X PUT --data-binary @$i http://192.168.99.100:9998/tika --header "Content-type: application/pdf" > ${i%.*}.txt
            fi

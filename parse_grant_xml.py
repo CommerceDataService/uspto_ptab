@@ -143,7 +143,7 @@ def sendToSolr(core, json):
          headers = {"Content-type" : "application/json"}
      except:
          logging.error("Unexpected error: ", sys.exc_info()[0])
-     
+ 
 def processFile(fname):
     logging.info("-- Processing file: "+fname)
     altfn = os.path.splitext(fname)[0]+"_altered.xml"
@@ -163,7 +163,7 @@ def processFile(fname):
         logging.info("-- Starting XML Parse process")
         parseXML(altfn)
         if (args.skipsolr):
-            logging.info("-- Skipping Solr process") 
+            logging.info("-- Skipping Solr process")
         else:
              logging.info("-- Starting Solr process")
              readJSON(fn)

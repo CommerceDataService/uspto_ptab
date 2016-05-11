@@ -1,3 +1,5 @@
 xmltodict==0.10.1
+requests==2.9.1
+python-dateutil==2.5.2
 git+https://github.com/18F/doc_processing_toolkit.git#egg=textextraction
 boto
