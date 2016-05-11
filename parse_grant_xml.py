@@ -3,10 +3,11 @@
 #Author:        Sasan Bahadaran
 #Date:          5/7/16
 #Organization:  Commerce Data Service
-#Description:   This script crawls the files directory and finds each metadata
-#xml file.  It then splits the master file into one xml file per document.
-#Next, it renames core elements and transforms the content to JSON.
-#Lastly, it sends the documents from the json file to Solr for indexing.
+#Description:   This script crawls the files directory and finds each
+#xml file.  It then take the master file and turns it into a properly
+#formed combined XML file. Next, it renames core elements and transforms
+#the content to JSON. Lastly, it sends the documents from the json file 
+#to Solr for indexing.
 
 import sys, json, xmltodict, os, logging, time, argparse, glob, requests,re
 import dateutil.parser
@@ -34,63 +35,41 @@ def validDate(s):
         msg = "Not a valid date: '{0}'.".format(s)
         raise argparse.ArgumentTypeError(msg)
 
-def splitFiles(fname):
+def outputFile(fname, input):
+    try:
+        if not os.path.isfile(fname):
+            logging.info("-- Writing to output file: "+fname)
+            with open(fname,'w') as outfile:
+                outfile.writelines(input)
+            logging.info("-- Writing to file complete: "+fname)
+        else:
+             logging.info("-- File: "+fname+" already exists")
+    except IOError as e:
+        logging.error("-- I/O error({0}): {1}".format(e))
+
+def combineFiles(fname):
     try:
         filecontent = []
-        fn = ""
-        filetype = ""
-        dir_path = os.path.join(os.path.dirname(fname),os.path.splitext(fname)[0])
-        if not os.path.exists(dir_path):
-            os.makedirs(dir_path)
-        with open(os.path.abspath(fname)) as fd:
-            filecontent.append(fd.readline())
-            for line in fd:
-                if line.strip().startswith("<?xml version"):
-                    print("xml line: "+line)
-                    if not os.path.isfile(os.path.join(dir_path,fn)):
-                        with open(os.path.join(dir_path,fn),'w') as outfile:
-                            outfile.writelines(filecontent)
+        #print("combineFiles filename: "+fname)
+        fn = os.path.splitext(fname)[0]+"_altered.xml"
+        if not os.path.isfile(fn):
+            with open(os.path.abspath(fname)) as fd:
+                filecontent.append(fd.readline())
+                filecontent.append(fd.readline())
+                filecontent.append("<main>\n")
+                for line in fd:
+                    if line.strip().startswith("<?xml version"):
+                        continue
+                    elif line.strip().startswith("<!DOCTYPE"):
+                        continue
                     else:
-                        logging.info("--File: "+fn+" already exists")
-                    del filecontent[:]
-                    fn = ""
-                    filetype = ""
-                    filecontent.append(line)
-                #elif line.strip().startswith("<!DOCTYPE"):
-                #    lwords = line.split()
-                #    if lwords[1] == "us-patent-grant":
-                #        filetype = lwords[1]
-                #        nameobj = re.findall('file="(.*?)"', fd.readline())
-                #        fn = nameobj[0]
-                #        fn = changeExt(fn, 'xml')
-                #    elif lwords[1] == "sequence-cwu":
-                #        filetype = lwords[1]
-                #    filecontent.append(line)
-                elif line.strip().startswith("<us-patent-grant"):
-                    print("p")
-                    print("line: "+line)
-                    filetype = "p"
-                    nameobj = re.findall('file="(.*?)"', line)
-                    fn = changeExt(nameobj[0], 'xml')
-                    filecontent.append(line)
-                elif line.strip().startswith("<sequence-cwu"):
-                    print("s")
-                    print("line: "+line)
-                    filetype = "s"
-                    filecontent.append(line)
-                elif filetype == "s" and line.strip().startswith("<doc-number>"):
-                    finddocnum = re.findall('<doc-number>(.*?)<', line)
-                    fn = finddocnum[0]
-                    filecontent.append(line)
-                elif filetype == "s" and line.strip().startswith("<date>"):
-                    filecontent.append(line)
-                    finddate = re.findall('<date>(.*?)<', line)
-                    fn += "-"+finddate[0]+"-sequence.xml"
+                        filecontent.append(line)
                 else:
-                    filecontent.append(line)
-            if not os.path.isfile(os.path.join(dir_path,fn)):
-                with open(os.path.join(dir_path,fn),'w') as outfile:
-                    outfile.writelines(filecontent)
+                    filecontent.append("</main>")
+                outputFile(fn, filecontent)
+                logging.info("-- Combine file process complete")
+        else:
+            logging.info("-- File: "+fn+" already exists")
     except IOError as e:
         logging.error("I/O error({0}): {1}".format(e.errno,e.strerror))
         raise
@@ -100,31 +79,24 @@ def splitFiles(fname):
 
 #this function contains the code for parsing the xml file
 #and writing the results out to a json file
-def parseXML(dir_name):
+def parseXML(fname):
     try:
-        if os.path.isdir(dir_name):
-            for file in os.listdir(dir_name):
-                if file.endswith(".xml") and not file.endswith("sequence.xml"):
-                    print("file: "+os.path.join(dir_name,file))
-                    fn = changeExt(file,'json')
-                    if not os.path.isfile(os.path.join(dir_name,fn)):
-                        with open(os.path.join(dir_name,file)) as fd:
-                            #print(fd.read())
-                            doc = xmltodict.parse(fd.read())
-                            doc_info = doc['us-patent-grant']['us-bibliographic-data-grant']['publication-reference']['document-id']
-                            doc_info['appid'] = doc_info.pop('doc-number')
-                            doc_info['doc_date'] = doc_info.pop('date')
-                            #textdata - not sure what this should be set to.....
+        fn = changeExt(fname,'json')
+        if not os.path.isfile(fn):
+            with open(fname) as fd:
+                doc = xmltodict.parse(fd.read())
+                for x in doc['main']['us-patent-grant']:
+                    line = x['us-bibliographic-data-grant']['publication-reference']['document-id']
+                    line['appid'] = line.pop('doc-number')
+                    line['doc_date'] = line.pop('date')
+                    #textdata field needs to be set also, but that is yet to be determined
 
-                            #transform output to json and save to file with same name
-                            with open(os.path.join(dir_name,fn),'w') as outfile:
-                                print("in write to file")
-                                json.dump(doc,outfile)
-                                logging.info("-- Processing of XML file complete")
-                    else:
-                        logging.info("--File: "+fn+" already exists.")
+                #transform output to json and save to file with same name
+            outputFile(fn,json.dumps(doc))
+            logging.info("-- Processing of XML file complete")
         else:
-            logging.error("Directory: "+dir_name+" does not exist")
+            logging.info("--File: "+fn+" already exists.")
+
     except KeyError as e:
         logging.error("File: "+fn+" Key Error: {0} ".format(e))
         pass
@@ -136,14 +108,11 @@ def parseXML(dir_name):
 
 def readJSON(fname):
     try:
-        with open(os.path.abspath(fname)) as fd:
+        with open(fname) as fd:
             doc = json.loads(fd.read())
-            records = doc['main']['DATA_RECORD']
-            for x in records:
-                docid = x.get('DOCUMENT_IMAGE_ID',x.get('DOCUMENT_NM'))
+            for x in doc['main']['us-patent-grant']:
+                docid = x['us-bibliographic-data-grant']['publication-reference']['document-id']['appid']
                 jsontext = json.dumps(x)
-                #need to change this line
-                print(os.path.join(os.path.dirname(fname)))
                 with open(os.path.join(os.path.dirname(fname),'solrcomplete.txt'),'a+') as logfile:
                     logfile.seek(0)
                     if docid+"\n" in logfile:
@@ -151,7 +120,7 @@ def readJSON(fname):
                        continue
                     else:
                        logging.info("-- Sending file: "+docid+" to Solr")
-                       response = sendToSolr('ptab', jsontext)
+                       response = sendToSolr('grants', jsontext)
                        r = response.json()
                        status = r["responseHeader"]["status"]
                        if status == 0:
@@ -168,33 +137,36 @@ def readJSON(fname):
 #send document to Solr for indexing
 def sendToSolr(core, json):
      #add try-catch block
-     jsontext = '{"add":{ "doc":'+json+',"boost":1.0,"overwrite":true, "commitWithin": 1000}}'
-     url = os.path.join(solrURL,"solr",core,"update")
-     headers = {"Content-type" : "application/json"}
+     try:
+         jsontext = '{"add":{ "doc":'+json+',"boost":1.0,"overwrite":true, "commitWithin": 1000}}'
+         url = os.path.join(solrURL,"solr",core,"update")
+         headers = {"Content-type" : "application/json"}
+     except:
+         logging.error("Unexpected error: ", sys.exc_info()[0])
      
 def processFile(fname):
     logging.info("-- Processing file: "+fname)
-    dir_path = os.path.join(os.path.dirname(fname),os.path.splitext(fname)[0])
-    #print("dir_path: "+dir_path)
+    altfn = os.path.splitext(fname)[0]+"_altered.xml"
+    fn = changeExt(altfn,'json')
     if (args.skipsplit):
         logging.info("-- Skipping File Split process")
         logging.info("-- Starting XML Parse process")
-        parseXML(dir_path)
+        parseXML(altfn)
         if (args.skipsolr):
             logging.info("-- Skipping Solr process.")
         else:
             logging.info("-- Starting Solr process")
-            #readJSON(dir_path)
+            readJSON(fn)
     else:
         logging.info("-- Starting File Split process")
-        splitFiles(fname)
+        combineFiles(fname)
         logging.info("-- Starting XML Parse process")
-        parseXML(dir_path)
+        parseXML(altfn)
         if (args.skipsolr):
             logging.info("-- Skipping Solr process") 
         else:
              logging.info("-- Starting Solr process")
-             #readJSON(dir_path)
+             readJSON(fn)
 
 if __name__ == '__main__':
     scriptpath = os.path.dirname(os.path.abspath(__file__))
@@ -234,7 +206,8 @@ if __name__ == '__main__':
     args = parser.parse_args()
     if args.dates:
         logging.info("Date arguments set to: "+",".join(args.dates))
-    #logging.info("File Split set to: "+str(args.skipsplit))
+    logging.info("Skip File Split set to: "+str(args.skipsplit))
+    logging.info("Skip Solr set to: "+str(args.skipsolr))
     logging.info("-- [JOB START]  ----------------")
 
     if args.dates:
