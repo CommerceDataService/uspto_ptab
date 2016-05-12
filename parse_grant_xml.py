@@ -130,20 +130,14 @@ def readJSON(fname):
                        continue
                     else:
                        logging.info("-- Sending file: "+docid+" to Solr")
-
-
-                       logfile.write(docid+"\n")
-
-
-
-                       #response = sendToSolr('grants', jsontext)
-                       #r = response.json()
-                       #status = r["responseHeader"]["status"]
-                       #if status == 0:
-                       #    logfile.write(docid+"\n")
-                       #    logging.info("-- Solr update for file: "+docid+" complete")
-                       #else:
-                       #    logging.info("-- Solr error for doc: "+docid+" error: "+', '.join("{!s}={!r}".format(k,v) for (k,v) in rdict.items()))
+                       response = sendToSolr('grants', jsontext)
+                       r = response.json()
+                       status = r["responseHeader"]["status"]
+                       if status == 0:
+                           logfile.write(docid+"\n")
+                           logging.info("-- Solr update for file: "+docid+" complete")
+                       else:
+                           logging.info("-- Solr error for doc: "+docid+" error: "+', '.join("{!s}={!r}".format(k,v) for (k,v) in rdict.items()))
     except IOError as e:
         logging.error("-- I/O error({0}): {1}".format(e.errno,e.strerror))
     except:
