@@ -35,6 +35,15 @@ def validDate(s):
         msg = "Not a valid date: '{0}'.".format(s)
         raise argparse.ArgumentTypeError(msg)
 
+#validate filetype argument
+def validType(s):
+    if s not in ("p","g"):
+        msg = "Not a valid type: '{0}'.".format(s)
+        raise argparse.ArgumentTypeError(msg)
+    else:
+        return s
+
+#writes to output file
 def outputFile(fname, input):
     try:
         if not os.path.isfile(fname):
@@ -47,10 +56,11 @@ def outputFile(fname, input):
     except IOError as e:
         logging.error("-- I/O error({0}): {1}".format(e))
 
+#this function alters the XML document in order to form a unified single XML
+#document contained in a root node
 def combineFiles(fname):
     try:
         filecontent = []
-        #print("combineFiles filename: "+fname)
         fn = os.path.splitext(fname)[0]+"_altered.xml"
         if not os.path.isfile(fn):
             with open(os.path.abspath(fname)) as fd:
@@ -85,8 +95,8 @@ def parseXML(fname):
         if not os.path.isfile(fn):
             with open(fname) as fd:
                 doc = xmltodict.parse(fd.read())
-                for x in doc['main']['us-patent-grant']:
-                    line = x['us-bibliographic-data-grant']['publication-reference']['document-id']
+                for x in doc['main']['us-patent-'+filetype[1]]:
+                    line = x['us-bibliographic-data-'+filetype[1]]['publication-reference']['document-id']
                     line['appid'] = line.pop('doc-number')
                     line['doc_date'] = line.pop('date')
                     #textdata field needs to be set also, but that is yet to be determined
@@ -110,8 +120,8 @@ def readJSON(fname):
     try:
         with open(fname) as fd:
             doc = json.loads(fd.read())
-            for x in doc['main']['us-patent-grant']:
-                docid = x['us-bibliographic-data-grant']['publication-reference']['document-id']['appid']
+            for x in doc['main']['us-patent-'+filetype[1]]:
+                docid = x['us-bibliographic-data-'+filetype[1]]['publication-reference']['document-id']['appid']
                 jsontext = json.dumps(x)
                 with open(os.path.join(os.path.dirname(fname),'solrcomplete.txt'),'a+') as logfile:
                     logfile.seek(0)
@@ -143,7 +153,7 @@ def sendToSolr(core, json):
          headers = {"Content-type" : "application/json"}
      except:
          logging.error("Unexpected error: ", sys.exc_info()[0])
- 
+
 def processFile(fname):
     logging.info("-- Processing file: "+fname)
     altfn = os.path.splitext(fname)[0]+"_altered.xml"
@@ -171,6 +181,7 @@ def processFile(fname):
 if __name__ == '__main__':
     scriptpath = os.path.dirname(os.path.abspath(__file__))
     solrURL = "http://54.208.116.77:8983"
+    filetype = []
 
     #logging configuration
     logging.basicConfig(
@@ -181,6 +192,13 @@ if __name__ == '__main__':
                        )
 
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+                        "-t",
+                        "--type",
+                        required=True,
+                        help="Specifies type of document (p or g)",
+                        type=validType
+                       )
     parser.add_argument(
                         "-d",
                         "--dates",
@@ -204,20 +222,34 @@ if __name__ == '__main__':
                         action='store_true'
                        )
     args = parser.parse_args()
+    if args.type == "g":
+        filetype.append("GRANTS")
+        filetype.append("grant")
+    elif args.type == "p":
+        filetype.append("PUBS")
+        filetype.append("application")
+    logging.info("File type set to: "+args.type)
     if args.dates:
         logging.info("Date arguments set to: "+",".join(args.dates))
     logging.info("Skip File Split set to: "+str(args.skipsplit))
     logging.info("Skip Solr set to: "+str(args.skipsolr))
     logging.info("-- [JOB START]  ----------------")
 
+    #if args.type == "g":
+    #    filetype.append("GRANTS")
+    #    filetype.append("grant")
+    #elif args.type == "p":
+    ##   filetype.append("PUBS")
+    #    filetype.append("application")
+
     if args.dates:
-       for date in args.dates:
+        for date in args.dates:
             #crawl through each main directory and find the metadata xml file
-            for filename in glob.iglob(os.path.join(scriptpath,'files/GRANTS',date,'*.xml'),recursive=True):
+            for filename in glob.iglob(os.path.join(scriptpath,'files',filetype[0],date,'*.xml'),recursive=True):
                 processFile(filename)
     else:
         #crawl through each main directory and find the metadata xml file
-        for filename in glob.iglob(os.path.join(scriptpath,'files/GRANTS','*/*.xml')):
+        for filename in glob.iglob(os.path.join(scriptpath,'files',filetype[0],'*/*.xml')):
             processFile(filename)
 
     logging.info("-- [JOB END] ----------------")
