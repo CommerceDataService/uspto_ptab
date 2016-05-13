@@ -26,22 +26,44 @@ def formatDate(x, field):
     dateiso = date.isoformat()+'Z'
     return dateiso
 
-#validate date
-def validDate(s):
-    try:
-        datetime.strptime(s, "%Y")
-        return s
-    except ValueError:
-        msg = "Not a valid date: '{0}'.".format(s)
-        raise argparse.ArgumentTypeError(msg)
-
 #validate filetype argument
 def validType(s):
-    if s not in ("p","g"):
-        msg = "Not a valid type: '{0}'.".format(s)
+    if s not in ("p","g","pt"):
+        msg = "Not a valid file type value: '{0}'.".format(s)
         raise argparse.ArgumentTypeError(msg)
     else:
         return s
+
+#validate date
+def validDate(s):
+    for fmt in ("%Y%m%d","%Y"):
+        try:
+            datetime.strptime(s, fmt)
+            return s
+        except ValueError:
+            pass
+    msg = "Not a valid date: '{0}'.".format(s)
+    raise argparse.ArgumentTypeError(msg)
+
+#replace key in dictionary
+def replaceKey(data,x,y):
+    data[x] = data.pop(y)
+    return data
+
+#replace date value with a proper iso format
+def formatDate(value):
+    date = dateutil.parser.parse(value)
+    dateiso = date.isoformat()+'Z'
+    return dateiso
+
+#read parsed PDF doc for PTAB files
+def readDoc(txtfn):
+    try:
+        with open(txtfn) as dr:
+            text = dr.read()
+            return text
+    except IOError as e:
+        logging.error("-- File: "+txtfn+" I/O error({0}): {1}".format(e.errno,e.strerror))
 
 #writes to output file
 def outputFile(fname, input):
@@ -92,16 +114,53 @@ def combineFiles(fname):
 def parseXML(fname):
     try:
         fn = changeExt(fname,'json')
+        print("filename: "+fn)
         if not os.path.isfile(fn):
             with open(fname) as fd:
+                print("begin read: "+str(datetime.now()))
                 doc = xmltodict.parse(fd.read())
-                for x in doc['main']['us-patent-'+filetype[1]]:
-                    line = x['us-bibliographic-data-'+filetype[1]]['publication-reference']['document-id']
-                    line['appid'] = line.pop('doc-number')
-                    line['doc_date'] = line.pop('date')
-                    #textdata field needs to be set also, but that is yet to be determined
+                print("end read: "+str(datetime.now()))
+                if args.ftype in ("g","p"):
+                     print("in g/p - filetype: "+filetype[3])
+                     iter = 0
+                     for x in doc['main']['us-patent-'+filetype[3]]:
+                         iter +=1
+                         print(iter)
+                         line = x['us-bibliographic-data-'+filetype[3]]['publication-reference']['document-id']
+                         kitems = {"appid":"doc-number","doc_date":"date"}
+                         for key,value in kitems.items():
+                             print("key: "+key+" value: "+value)
+                             replaceKey(line,key,value)
+                         #line['appid'] = line.pop('doc-number')
+                         #line['doc_date'] = line.pop('date')
+                         #textdata field needs to be set also, but that is yet to be determined
+                else:
+                    print("in else!!!")
+                    print("args.ftype: "+args.ftype)
+                    for x in doc['main']['DATA_RECORD']:
+                        txtfn = os.path.join(os.path.dirname(fn),'PDF_image',docid+'.txt')
+                        if os.path.isfile(txtfn):
+                            kitems = {"appid":"BD_PATENT_APPLICATION_NO","doc_date":"DOCUMENT_CREATE_DT"}
+                            for key,value in kitems:
+                                replaceKey(x,key,value)
 
-            #transform output to json and save to file with same name
+                            kitems2 = ["LAST_MODIFIED_TS","PATENT_ISSUE_DT","DECISION_MAILED_DT","PRE_GRANT_PUBLICATION_DT","APPLICANT_PUB_AUTHORIZATION_DT"]
+                            for item in kitems2:
+                                x[item] = formatDate(x.pop(item))
+                            x['textdata'] = readDoc(txtfn)
+                            #x['LAST_MODIFIED_TS'] = formatDate(x, 'LAST_MODIFIED_TS')
+                            #x['PATENT_ISSUE_DT'] = formatDate(x, 'PATENT_ISSUE_DT')
+                            #x['DECISION_MAILED_DT'] = formatDate(x, 'DECISION_MAILED_DT')
+                            #x['PRE_GRANT_PUBLICATION_DT'] = formatDate(x, 'PRE_GRANT_PUBLICATION_DT')
+                            #x['APPLICANT_PUB_AUTHORIZATION_DT'] = formatDate(x, 'APPLICANT_PUB_AUTHORIZATION_DT')
+                            #x['appid'] = x.pop('BD_PATENT_APPLICATION_NO')
+                            #x['doc_date'] = x.pop('DOCUMENT_CREATE_DT')
+                            ##put in different function
+                            #with open(txtfn) as dr:
+                            #    text = dr.read()
+                            #    x['textdata'] = text
+            print("output file")
+            #transform output to json
             outputFile(fn,json.dumps(doc))
             logging.info("-- Processing of XML file complete")
         else:
@@ -116,12 +175,14 @@ def parseXML(fname):
         logging.error("-- Unexpected error:", sys.exc_info()[0])
         raise
 
+ 
+
 def readJSON(fname):
     try:
         with open(fname) as fd:
             doc = json.loads(fd.read())
-            for x in doc['main']['us-patent-'+filetype[1]]:
-                docid = x['us-bibliographic-data-'+filetype[1]]['publication-reference']['document-id']['appid']
+            for x in doc['main'][filetype[3]]:
+                docid = x['us-bibliographic-data-'+filetype[3]]['publication-reference']['document-id']['appid']
                 jsontext = json.dumps(x)
                 with open(os.path.join(os.path.dirname(fname),'solrcomplete.txt'),'a+') as logfile:
                     logfile.seek(0)
@@ -155,27 +216,23 @@ def sendToSolr(core, json):
 
 def processFile(fname):
     logging.info("-- Processing file: "+fname)
-    altfn = os.path.splitext(fname)[0]+"_alt.xml"
-    fn = changeExt(altfn,'json')
-    if (args.skipcombine):
-        logging.info("-- Skipping File Split process")
-        logging.info("-- Starting XML Parse process")
-        parseXML(altfn)
-        if (args.skipsolr):
-            logging.info("-- Skipping Solr process.")
-        else:
-            logging.info("-- Starting Solr process")
-            readJSON(fn)
+    if (args.ftype in ("g","p")):
+        print("in p/g processFile")
+        altfn = os.path.splitext(fname)[0]+"_alt.xml"
+        fn = changeExt(altfn,'json')
+        if not (args.skipcombine):
+            logging.info("-- Starting File Split process")
+            #combineFiles(fname)
     else:
-        logging.info("-- Starting File Split process")
-        combineFiles(fname)
-        logging.info("-- Starting XML Parse process")
-        parseXML(altfn)
-        if (args.skipsolr):
-            logging.info("-- Skipping Solr process")
-        else:
-             logging.info("-- Starting Solr process")
-             readJSON(fn)
+        altfn = fname
+        fn = changeExt(altfn,'json')
+    logging.info("-- Starting XML Parse process")
+    parseXML(altfn)
+    if (args.skipsolr):
+        logging.info("-- Skipping Solr process")
+    else:
+        logging.info("-- Starting Solr process")
+        #readJSON(fn)
 
 if __name__ == '__main__':
     scriptpath = os.path.dirname(os.path.abspath(__file__))
@@ -193,16 +250,16 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
                         "-t",
-                        "--type",
+                        "--ftype",
                         required=True,
-                        help="Specifies type of document (p or g)",
+                        help="Specifies type of document (g, p, or pt)",
                         type=validType
                        )
     parser.add_argument(
                         "-d",
                         "--dates",
                         required=False,
-                        help="Process file(s) for specific date(s) - format YYYY",
+                        help="Process file(s) for specific date(s) - if type = g or p, format YYYY, if type = pt, format YYYYMMDD",
                         nargs='*',
                         type=validDate
                        )
@@ -221,29 +278,31 @@ if __name__ == '__main__':
                         action='store_true'
                        )
     args = parser.parse_args()
-    if args.type == "g":
-        filetype.append("GRANTS")
-        filetype.append("grant")
-    elif args.type == "p":
-        filetype.append("PUBS")
-        filetype.append("application")
-    logging.info("--------ARGUMENTS------------")
-    logging.info("File type set to: "+filetype[0])
-    if args.dates:
-        logging.info("Date arguments set to: "+",".join(args.dates))
-    logging.info("Skip File Combine set to: "+str(args.skipcombine))
-    logging.info("Skip Solr set to: "+str(args.skipsolr))
     logging.info("-- [JOB START]  ----------------")
+    if args.ftype == "g":
+        filetype = ["GRANTS","*","","grant"]
+    elif args.ftype == "p":
+        filetype = ["PUBS","*","","application"]
+    elif args.ftype == "pt":
+        filetype = ["PTAB","PTAB*","PTAB*"]
+    logging.info("--------ARGUMENTS------------")
+    logging.info("File Type set to: "+filetype[0])
+    if args.dates:
+        logging.info("Dates set to: "+",".join(args.dates))
+    logging.info("Skip Combine set to: "+str(args.skipcombine))
+    logging.info("Skip Solr set to: "+str(args.skipsolr))
 
     if args.dates:
         for date in args.dates:
+            if args.ftype in ("g","p"):
+                date = str(dateutil.parser.parse(date).year)
             #crawl through each main directory and find the metadata xml file
-            for filename in glob.iglob(os.path.join(scriptpath,'files',filetype[0],date,'*.xml'),recursive=True):
+            for filename in glob.iglob(os.path.join(scriptpath,'files',filetype[0],filetype[2]+date,'*.xml')):
                 if not filename.endswith("_alt.xml"):
                     processFile(filename)
     else:
         #crawl through each main directory and find the metadata xml file
-        for filename in glob.iglob(os.path.join(scriptpath,'files',filetype[0],'*/*.xml')):
+        for filename in glob.iglob(os.path.join(scriptpath,'files',filetype[0],filetype[1],'*.xml')):
             if not filename.endswith("_alt.xml"):
                 processFile(filename)
 
