@@ -113,7 +113,7 @@ def parseXML(fname):
             with open(fname) as fd:
                 logging.info("-- Beginning read of file at: "+str(datetime.now()))
                 doc = xmltodict.parse(fd.read())
-                logging.info("-- Enf of reading file and converting to dictionary at: "str(datetime.now()))
+                logging.info("-- End of reading file and converting to dictionary at: "+str(datetime.now()))
                 if args.ftype in ("g","p"):
                      for x in doc['main']['us-patent-'+filetype[3]]:
                          line = x['us-bibliographic-data-'+filetype[3]]['publication-reference']['document-id']
