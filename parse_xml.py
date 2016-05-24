@@ -24,7 +24,7 @@ def changeExt(fname, ext):
 
 #validate filetype argument
 def validType(s):
-    if s not in ("p","g","pt"):
+    if s not in ("p", "g", "pt"):
         msg = "Not a valid file type value: '{0}'.".format(s)
         raise argparse.ArgumentTypeError(msg)
     else:
@@ -32,7 +32,7 @@ def validType(s):
 
 #validate date
 def validDate(s):
-    for fmt in ("%Y%m%d","%Y"):
+    for fmt in ("%Y%m%d", "%Y"):
         try:
             datetime.strptime(s, fmt)
             return s
@@ -42,7 +42,7 @@ def validDate(s):
     raise argparse.ArgumentTypeError(msg)
 
 #replace key in dictionary
-def replaceKey(data,newval,oldval):
+def replaceKey(data, newval, oldval):
     data[newval] = data.pop(oldval)
 
 #replace date value with a proper iso format
@@ -58,14 +58,14 @@ def readDoc(txtfn):
             text = dr.read()
             return text
     except IOError as e:
-        logging.error("-- File: "+txtfn+" I/O error({0}): {1}".format(e.errno,e.strerror))
+        logging.error("-- File: "+txtfn+" I/O error({0}): {1}".format(e.errno, e.strerror))
 
 #writes to output file
 def outputFile(fname, input):
     try:
         if not os.path.isfile(fname):
             logging.info("-- Writing to output file: "+fname)
-            with open(fname,'w') as outfile:
+            with open(fname, 'w') as outfile:
                 outfile.writelines(input)
             logging.info("-- Writing to file complete: "+fname)
         else:
@@ -98,7 +98,7 @@ def combineFiles(fname):
         else:
             logging.info("-- File: "+fn+" already exists")
     except IOError as e:
-        logging.error("-- I/O error({0}): {1}".format(e.errno,e.strerror))
+        logging.error("-- I/O error({0}): {1}".format(e.errno, e.strerror))
         raise
     except:
         logging.error("-- Unexpected error:", sys.exc_info()[0])
@@ -108,35 +108,38 @@ def combineFiles(fname):
 #and writing the results out to a json file
 def parseXML(fname):
     try:
-        fn = changeExt(fname,'json')
+        fn = changeExt(fname, 'json')
         if not os.path.isfile(fn):
             with open(fname) as fd:
-                logging.info("-- Beginning read of file at: "+str(datetime.now()))
+                logging.info("-- Beginning read of file")
                 doc = xmltodict.parse(fd.read())
-                logging.info("-- End of reading file and converting to dictionary at: "+str(datetime.now()))
-                if args.ftype in ("g","p"):
+                logging.info("-- End of reading file and converting to dictionary")
+                if args.ftype in ("g", "p"):
                      for x in doc['main']['us-patent-'+filetype[3]]:
                          line = x['us-bibliographic-data-'+filetype[3]]['publication-reference']['document-id']
-                         kitems = {"appid":"doc-number","doc_date":"date"}
+                         kitems = {"appid" : "doc-number", "doc_date" : "date"}
                          for key,value in kitems.items():
-                             replaceKey(line,key,value)
+                             replaceKey(line, key, value)
                          #textdata field needs to be set also, but that is yet to be determined
                 else:
                     for x in doc['main']['DATA_RECORD']:
                         docid = x["DOCUMENT_IMAGE_ID"]
-                        txtfn = os.path.join(os.path.dirname(fn),'PDF_image',docid+'.txt')
+                        txtfn = os.path.join(os.path.dirname(fn), 'PDF_image', docid+'.txt')
                         if os.path.isfile(txtfn):
-                            kitems = ["DOCUMENT_CREATE_DT","LAST_MODIFIED_TS","PATENT_ISSUE_DT","DECISION_MAILED_DT","PRE_GRANT_PUBLICATION_DT","APPLICANT_PUB_AUTHORIZATION_DT"]
+                            kitems = ["DOCUMENT_CREATE_DT", "LAST_MODIFIED_TS", "PATENT_ISSUE_DT", "DECISION_MAILED_DT", "PRE_GRANT_PUBLICATION_DT", "APPLICANT_PUB_AUTHORIZATION_DT"]
                             for item in kitems:
                                 x[item] = formatDate(x.pop(item))
-                            kitems2 = {"appid":"BD_PATENT_APPLICATION_NO","doc_date":"DOCUMENT_CREATE_DT"}
-                            for key,value in kitems2.items():
-                                replaceKey(x,key,value)
+                            kitems2 = {"appid" : "BD_PATENT_APPLICATION_NO", "doc_date" : "DOCUMENT_CREATE_DT"}
+                            for key, value in kitems2.items():
+                                replaceKey(x, key, value)
                             x['textdata'] = readDoc(txtfn)
                         else:
                             logging.error("File: "+txtfn+" does not exist.  Parsing of XML will be skipped")
+                            break
+            
+            ####Stop it from writing to outputfile if you hit the error above!!!!!!!!!!!!!!!!!!!!!!!!!
             #transform output to json
-            outputFile(fn,json.dumps(doc))
+            outputFile(fn, json.dumps(doc))
             logging.info("-- Processing of XML file complete")
         else:
             logging.info("-- File: "+fn+" already exists.")
@@ -145,7 +148,7 @@ def parseXML(fname):
         logging.error("-- File: "+fn+" Key Error: {0} ".format(e))
         pass
     except IOError as e:
-        logging.error("-- I/O error({0}): {1}".format(e.errno,e.strerror))
+        logging.error("-- I/O error({0}): {1}".format(e.errno, e.strerror))
     except:
         logging.error("-- Unexpected error:", sys.exc_info()[0])
         raise
@@ -154,10 +157,10 @@ def readJSON(fname):
     try:
         with open(fname) as fd:
             doc = json.loads(fd.read())
-            if args.ftype in ("g","p"):
+            if args.ftype in ("g", "p"):
                 element = "us-patent-"+filetype[3]
-                docvalue = ["us-bibliographic-data-"+filetype[3],"publication-reference","document-id","appid"]
-                logfn = fname.split("_alt.json",1)[0]+"_solrlog.txt"
+                docvalue = ["us-bibliographic-data-"+filetype[3], "publication-reference", "document-id", "appid"]
+                logfn = fname.split("_alt.json", 1)[0]+"_solrlog.txt"
             else:
                 element = "DATA_RECORD"
                 docvalue = ["DOCUMENT_IMAGE_ID"]
@@ -168,51 +171,64 @@ def readJSON(fname):
                     x2 = x2[val]
                 docid = x2
                 jsontext = json.dumps(x)
-                with open(logfn,'a+') as logfile:
+                with open(logfn, 'a+') as logfile:
                     logfile.seek(0)
                     if docid+"\n" in logfile:
                         logging.info("-- File: "+docid+" already processed by Solr")
                         continue
                     else:
+                        payload = {
+                         "add" : {
+                          "doc" : jsontext
+                         }
+                        }
                         logging.info("-- Sending file: "+docid+" to Solr")
-                        response = sendToSolr(filetype[0].lower(), jsontext)
+                        #response = sendToSolr(filetype[0].lower(), jsontext)
+                        response = sendToSolr(filetype[0].lower(), str(payload))
                         r = response.json()
                         status = r["responseHeader"]["status"]
                         if status == 0:
                             logfile.write(docid+"\n")
                             logging.info("-- Solr update for file: "+docid+" complete")
                         else:
-                            logging.info("-- Solr error for doc: "+docid+" error: "+', '.join("{!s}={!r}".format(k,v) for (k,v) in r.items()))
+                            logging.info("-- Solr error for doc: "+docid+" error: "+', '.join("{!s}={!r}".format(k, v) for (k, v) in r.items()))
     except IOError as e:
-        logging.error("-- I/O error({0}): {1}".format(e.errno,e.strerror))
+        logging.error("-- I/O error({0}): {1}".format(e.errno, e.strerror))
     except:
         logging.error("-- Unexpected error:", sys.exc_info()[0])
         raise
 
 #send document to Solr for indexing
-def sendToSolr(core, json):
+def sendToSolr(core, data):
      try:
-         jsontext = '{"add":{ "doc":'+json+',"boost":1.0,"overwrite":true, "commitWithin": 1000}}'
-         url = os.path.join(solrURL,"solr",core,"update")
+         url = os.path.join(solrURL, core, "update")
+         #jsontext = '{\"add\":{ \"doc\":'+json+', \"boost\":1.0,\"overwrite\":true, \"commitWithin\": 1000}}'
+         params = {"commitWithin" : 1000, "boost" : 1.0, "overwrite" : "true"}
          headers = {"Content-type" : "application/json"}
-
-         return requests.post(url, data=jsontext, headers=headers)
-     except:
-         logging.error("-- Unexpected error: ", sys.exc_info()[0])
+         #return requests.post(url, data=jsontext, params=params, headers=headers)
+         r = requests.post(url, data=data, params=params, headers=headers)
+         return r
+     except requests.exceptions.ConnectionError as e:
+         logging.error("-- Connection error: {0}".format(e))
+         raise
+     except requests.exceptions.RequestException as e:
+         logging.error("-- Solr Exception: {0}".format(e))
+         raise
 
 def processFile(fname):
     logging.info("-- Processing file: "+fname)
-    if (args.ftype in ("g","p")):
+    if (args.ftype in ("g", "p")):
         altfn = os.path.splitext(fname)[0]+"_alt.xml"
-        fn = changeExt(altfn,'json')
+        fn = changeExt(altfn, 'json')
         if not (args.skipcombine):
             logging.info("-- Starting File Split process")
             combineFiles(fname)
     else:
         altfn = fname
-        fn = changeExt(altfn,'json')
+        fn = changeExt(altfn, 'json')
     logging.info("-- Starting XML Parse process")
     parseXML(altfn)
+    #If cannot parse, do not move on!!
     if (args.skipsolr):
         logging.info("-- Skipping Solr process")
     else:
@@ -221,7 +237,7 @@ def processFile(fname):
 
 if __name__ == '__main__':
     scriptpath = os.path.dirname(os.path.abspath(__file__))
-    solrURL = "http://54.208.116.77:8983"
+    solrURL = "http://54.208.116.77:8983/solr"
     filetype = []
 
     #logging configuration
@@ -265,11 +281,11 @@ if __name__ == '__main__':
     args = parser.parse_args()
     logging.info("-- [JOB START]  ----------------")
     if args.ftype == "g":
-        filetype = ["GRANTS","*","","grant"]
+        filetype = ["GRANTS", "*", "", "grant"]
     elif args.ftype == "p":
-        filetype = ["PUBS","*","","application"]
+        filetype = ["PUBS", "*", "", "application"]
     elif args.ftype == "pt":
-        filetype = ["PTAB","PTAB*","PTAB*"]
+        filetype = ["PTAB", "PTAB*", "PTAB*"]
     logging.info("--------ARGUMENTS------------")
     logging.info("File Type set to: "+filetype[0])
     if args.dates:
@@ -279,15 +295,15 @@ if __name__ == '__main__':
 
     if args.dates:
         for date in args.dates:
-            if args.ftype in ("g","p"):
+            if args.ftype in ("g", "p"):
                 date = str(dateutil.parser.parse(date).year)
             #crawl through each main directory and find the metadata xml file
-            for filename in glob.iglob(os.path.join(scriptpath,'files',filetype[0],filetype[2]+date,'*.xml')):
+            for filename in glob.iglob(os.path.join(scriptpath, 'files', filetype[0], filetype[2]+date, '*.xml')):
                 if not filename.endswith("_alt.xml"):
                     processFile(filename)
     else:
         #crawl through each main directory and find the metadata xml file
-        for filename in glob.iglob(os.path.join(scriptpath,'files',filetype[0],filetype[1],'*.xml')):
+        for filename in glob.iglob(os.path.join(scriptpath, 'files', filetype[0], filetype[1], '*.xml')):
             if not filename.endswith("_alt.xml"):
                 processFile(filename)
 
