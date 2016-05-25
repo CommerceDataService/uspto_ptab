@@ -135,11 +135,11 @@ def parseXML(fname):
                             x['textdata'] = readDoc(txtfn)
                         else:
                             logging.error("File: "+txtfn+" does not exist.  Parsing of XML will be skipped")
-                            break
-            
-            ####Stop it from writing to outputfile if you hit the error above!!!!!!!!!!!!!!!!!!!!!!!!!
+                            return False
+
             #transform output to json
             outputFile(fn, json.dumps(doc))
+            return True
             logging.info("-- Processing of XML file complete")
         else:
             logging.info("-- File: "+fn+" already exists.")
@@ -227,13 +227,15 @@ def processFile(fname):
         altfn = fname
         fn = changeExt(altfn, 'json')
     logging.info("-- Starting XML Parse process")
-    parseXML(altfn)
     #If cannot parse, do not move on!!
-    if (args.skipsolr):
-        logging.info("-- Skipping Solr process")
+    if parseXML(altfn):
+        if (args.skipsolr):
+            logging.info("-- Skipping Solr process")
+        else:
+            logging.info("-- Starting Solr process")
+            readJSON(fn)
     else:
-        logging.info("-- Starting Solr process")
-        readJSON(fn)
+        logging.info("-- Skipping Solr process")
 
 if __name__ == '__main__':
     scriptpath = os.path.dirname(os.path.abspath(__file__))
