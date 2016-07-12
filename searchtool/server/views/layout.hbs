@@ -177,7 +177,6 @@
         </div> -->
                 {{#if accessOK}}
                     <a class="filter-group-title" href="#void" data-toggle="collapse" data-target="#2filterGroup1"><i class="icon icon-angle-right pull-right"></i> Filing date range</a>
-                {{/if}}
                 <div id="2filterGroup1" class="collapse">
                   <div class="filter-group-content">
                     <div class="row">
@@ -192,9 +191,39 @@
                     </div>
                   </div>
                 </div>
-                {{#if accessOK}}
-                
-              
+
+                <select name="documentcode" id=documentcodeID>
+                  <option value="">Please choose a document code</option>
+                  <option value="RXCTIN">INTERFERENCE COMMUNICATION: INITIAL MEMO:RXCTIN</option>
+                  <option value="RDIN">RX - DECISION STAYING REEXAM IN FAVOR OF INTERFERENCE:RDIN</option>
+                  <option value="M327-D">PUB OTHER MISCELLANEOUS COMMUNICATION TO APPLICANT:M327-D</option>
+                  <option value="CTNF">NON-FINAL REJECTION:CTNF</option>
+                  <option value="CNTA">ALLOWABILITY NOTICE:CNTA</option>
+                  <option value="CTFR">FINAL REJECTION:CTFR</option>
+                  <option value="CNOA">CORRECTED NOTICE OF ALLOWABILITY:CNOA</option>
+                  <option value="N271">RESPONSE TO AMENDMENT UNDER RULE 312:N271</option>
+                  <option value="REXD">RX - EX PARTE REEXAM ORDER - DENIED:REXD</option>
+                  <option value="EX.R">REASONS FOR ALLOWANCE:EX.R</option>
+                  <option value="RTDE">RX - PETITION DECISION - DENIED:RTDE</option>
+                  <option value="INTNO">INTERFERENCE NOTIFICATION TO PATENTEE RULE 607:INTNO</option>
+                  <option value="L.SI">SUSPENSION - INTERFERENCE IN ANOTHER CASE:L.SI</option>
+                  <option value="RXBPAI">REEXAM FORWARDED TO BOARD OF PATENT APPEALS AND INTERFERENCES:RXBPAI</option>
+                  <option value="RXSRXI">DECISION STAYING REEXAM PROCEEDING IN FAVOR OF INTERFERENCE PROCEEDING:RXSRXI</option>
+                  <option value="CTMS">MISCELLANEOUS ACTION WITH SSP:CTMS</option>
+                  <option value="M327">MISCELLANEOUS COMMUNICATION TO APPLICANT - NO ACTION COUNT:M327</option>
+                  <option value="M327-E">BOA MISCELLANEOUS COMMUNICATION TO APPLICANT:M327-E</option>
+                  <option value="P132">MISCELLANEOUS COMMUNICATION:P132</option>
+                  <option value="R327">RX - MISCELLANEOUS COMMUNICATION TO APPLICANT:R327</option>
+                  <option value="RXM327">MISCELLANEOUS COMMUNICATION TO APPLICANT:RXM327</option>
+                  <option value="RXMISC">MISCELLANEOUS ACTION MAILED:RXMISC</option>
+                  <option value="RXMMIS">MISCELLANEOUS LETTER MAILED:RXMMIS</option>
+                  <option value="SEMI">SE - MISCELLANEOUS DECISION/OFFICE NOTICE IN SE:SEMI</option>
+                  <option value="RTGR">RX - PETITION DECISION - GRANTED:RTGR</option>
+                  <option value="RTDI">RX - PETITION DECISION - DISMISSED:RTDI</option>
+                </select>                
+
+                <br>
+                <br>
 
                 <div>
                   <input type="text" name="art_unit"  aria-label="Search Art Unit Number" title="Search Art Unit Number" class="form-control" placeholder="Search Art Unit Number" value="{{#if artUnit}} {{artUnit}}{{/if}}">
@@ -392,6 +421,12 @@
                     <div class="pg-actions clearfix">
                         <div class="row">
                             {{#if term}}<span> Search Term: <span class="label label-success subtle">{{term}}</span> </span>{{/if}}
+
+                            {{#if documentcode}}
+                            <span> Document Code: </span><span class="label label-success subtle">{{documentcode}}</span>
+                            {{/if}}
+                            
+                            <br>
 
                             {{#if artUnit}}<span> Art Unit: <span class="label label-success subtle">{{artUnit}}</span></span>{{/if}}
 

@@ -21,10 +21,13 @@ exports.buildSearch = function (req, res) {
        lastUpdated: null,
        id: 1 } }
        */
-    // Get From Date
+    
+    // Setting Variables
     var q, fq;
     fq = "&fq=type:" + req.query.dataset;
     var dateRange='';
+
+    // Get From Date
     // Only doing this for readiblity. Do not accept blank or undefined dates
     if ((typeof req.query.fromdate !== 'undefined' && req.query.todate !== 'undefined') &&  (req.query.fromdate.length > 2 && req.query.todate.length > 2)) {
         var fromDate = +new Date(req.query.fromdate)/1000;
@@ -34,7 +37,6 @@ exports.buildSearch = function (req, res) {
     }
 
     // Ensure q var is cast to string
-
     if (req.query.q) {
         q=req.query.q.toString();
     }
@@ -43,8 +45,8 @@ exports.buildSearch = function (req, res) {
     if ((typeof req.query.art_unit !== 'undefined') && (req.query.art_unit.length < 7) && (req.query.art_unit.length > 0)) {
       var artUnit = 'dn_dw_dn_gau_cd:' + req.query.art_unit;
       fq += "&fq=" + artUnit;
-    }
-
+    } 
+    
     // Set Pagination to incremnt by 20 results
     var s = 0;
     var currentPage = 1;
@@ -53,6 +55,11 @@ exports.buildSearch = function (req, res) {
         currentPage = parseInt(req.query.pageno) ;
     }
 
+    // Set documentcode filter
+    if ((typeof req.query.documentcode !== 'undefined') && (req.query.documentcode.length > 0)) {
+            documentcode = 'documentcode:' + req.query.documentcode;
+            fq += "&fq=" + documentcode;
+    }
 
     // Build Search .. if no page number set then only show
     var SEARCH_URL = config.solrURI+'/select?q={!q.op=AND df=textdata}'+q+fq+'&wt=json&indent=true&rows=20&start='+s+'&hl=true&hl.snippets=10&hl.fl=textdata&hl.fragsize=200&hl.simple.pre=<code>&hl.simple.post=</code>&hl.usePhraseHighlighter=true&q.op=AND';
@@ -76,7 +83,7 @@ exports.buildSearch = function (req, res) {
                 res.render('newview', {
                     result:body.response.docs,
                     total:humanize.numberFormat(body.response.numFound,0),
-                    pagein:paginate({totalItem:body.response.numFound, itemPerPage:20, currentPage:currentPage, url:'/newsearch',params: {q: q, dataset: req.query.dataset, fromdate: req.query.fromdate, todate: req.query.todate, art_unit: req.query.art_unit} }),
+                    pagein:paginate({totalItem:body.response.numFound, itemPerPage:20, currentPage:currentPage, url:'/newsearch',params: {q: q, dataset: req.query.dataset, fromdate: req.query.fromdate, todate: req.query.todate, art_unit: req.query.art_unit, documentcode: req.query.documentcode} }),
                     took:humanize.numberFormat(body.responseHeader.QTime,0 ),
                     highlighting:body.highlighting,
                     term:q,
@@ -85,6 +92,7 @@ exports.buildSearch = function (req, res) {
                     accessOK: !!(! config.requireLogin || token.id),
                     todate: req.query.todate,
                     fromdate:req.query.fromdate,
+                    documentcode: req.query.documentcode,
                     artUnit: req.query.art_unit
                 });
             } else {
