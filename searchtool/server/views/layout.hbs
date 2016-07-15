@@ -183,7 +183,8 @@
                           {{#if term}}
                             <button aria-expanded="false" aria-haspopup="true" data-toggle="dropdown" class="btn btn-default dropdown-toggle" id="btn-pgActions">Download <span class="caret"></span></button>
                             <ul aria-labelledby="btn-pgActions" class="dropdown-menu">
-                              <li role="presentation"><a target="_BLANK" href="/download?q={{term}}&dataset={{dataset}}&fromdate={{fromdate}}&todate={{todate}}&art_unit={{artunit}}&documentcode={{documentcode}}">Download CSV</a></li>
+                              <li role="presentation"><a target="_BLANK" href="/download?q={{term}}&dataset={{dataset}}&fromdate={{fromdate}}&todate={{todate}}&art_unit={{artunit}}&documentcode={{documentcode}}&textdata=yes">CSV with text</a></li>
+                              <li role="presentation"><a target="_BLANK" href="/download?q={{term}}&dataset={{dataset}}&fromdate={{fromdate}}&todate={{todate}}&art_unit={{artunit}}&documentcode={{documentcode}}&textdata=no">CSV without text</a></li>
                             </ul>
                           {{/if}}
                         </div>
