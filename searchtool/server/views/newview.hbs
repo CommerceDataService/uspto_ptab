@@ -17,14 +17,14 @@
 
           {{#each result}}
             <div class="media">
-              <h4><a style="cursor:pointer"; onClick="javascript:document.getElementById('action_text').innerHTML =''; document.getElementById('action_text').innerHTML ='<h5>Application ID: {{appid}}, File Doc ID: {{DOCUMENT_IMAGE_ID}}</h5><hr>Pre-Grant Publication Number: <b>{{PRE_GRANT_PUBLICATION_NO}}</b> <br> FK DT Document Type Name: <b>{{FK_DT_DOCUMENT_TYPE_NM}}</b> <br> Inventor String Tx: <b>{{INVENTOR_STRING_TX}}</b> <br> Status Code: <b>{{STATUS_CD}}</b> <br> Inventor Name: <b>{{INVENTOR_GIVEN_NM}} {{INVENTOR_MIDDLE_NM}} {{INVENTOR_FAMILY_NM}}</b> <br> Patent Issue Date: <b>{{PATENT_ISSUE_DT}}</b> <br> Decision Mailed Date: <b>{{DECISION_MAILED_DT}}</b> <br> Pre-Grant Publication Number: <b>{{PRE_GRANT_PUBLICATION_NO}}</b> <br> Applicant Pub Authorization Date: <b>{{APPLICANT_PUB_AUTHORIZATION_DT}}</b> <br> FK DT Business Short Name: <b>{{FK_DT_BUSINESS_SHORT_NM}}</b> <br> Application Type Code: <b>{{APPLICATION_TYPE_CD}}</b> <br> Appeal Number: <b>{{APPEAL_NO}}</b> <br> Inventor QT: <b>{{INVENTOR_QT}}</b> <br> Last Modified TS: <b>{{LAST_MODIFIED_TS}}</b> <br><hr><b>Full Text</b><hr>{{breaklines textdata.[0]}}' ;"  data-item="{{DOCUMENT_IMAGE_ID}}" data-toggle="modal" data-target="#cancelModal"> PTAB DOC ID: {{DOCUMENT_IMAGE_ID}}</a></h4>
+              <h4><a style="cursor:pointer"; onClick="javascript:document.getElementById('action_text').innerHTML =''; document.getElementById('action_text').innerHTML ='<h5>Application ID: {{appid}}, File Doc ID: {{DOCUMENT_IMAGE_ID}}</h5><hr>Pre-Grant Publication Number: <b>{{PRE_GRANT_PUBLICATION_NO}}</b> <br> FK DT Document Type Name: <b>{{FK_DT_DOCUMENT_TYPE_NM}}</b> <br> Inventor String Tx: <b>{{INVENTOR_STRING_TX}}</b> <br> Status Code: <b>{{STATUS_CD}}</b> <br> Inventor Name: <b>{{INVENTOR_GIVEN_NM}} {{INVENTOR_MIDDLE_NM}} {{INVENTOR_FAMILY_NM}}</b> <br> Patent Issue Date: <b>{{PATENT_ISSUE_DT}}</b> <br> Decision Mailed Date: <b>{{DECISION_MAILED_DT}}</b> <br> Pre-Grant Publication Number: <b>{{PRE_GRANT_PUBLICATION_NO}}</b> <br> Applicant Pub Authorization Date: <b>{{APPLICANT_PUB_AUTHORIZATION_DT}}</b> <br> FK DT Business Short Name: <b>{{FK_DT_BUSINESS_SHORT_NM}}</b> <br> Application Type Code: <b>{{APPLICATION_TYPE_CD}}</b> <br> Appeal Number: <b>{{APPEAL_NO}}</b> <br> Inventor QT: <b>{{INVENTOR_QT}}</b> <br> Last Modified TS: <b>{{LAST_MODIFIED_TS}}</b> <br><hr><b>Full Text</b><hr>{{breaklines textdata}}' ;"  data-item="{{DOCUMENT_IMAGE_ID}}" data-toggle="modal" data-target="#cancelModal"> PTAB DOC ID: {{DOCUMENT_IMAGE_ID}}</a></h4>
               {{#with (lookup ../highlighting id) }}
                 {{#if textdata}}
                   {{#each textdata}}
                     <li>{{{this}}}</li>
                   {{/each}}
                 {{else}}
-                  {{{truncate ../textdata.[0]}}}...
+                  {{{truncate ../textdata}}}...
                 {{/if}}
               {{/with}}
               <hr>
@@ -32,22 +32,25 @@
           {{else}}
             <h1> No actions found for <span class="text-success">{{term}}</span> we may still be loading some </h1>
           {{/each}}
-
-        {{else}}
-
+      {{else}}
           {{#each result}}
-            <div class="media">
-              <h4>  <a style="cursor:pointer"; onClick="javascript:document.getElementById('action_text').innerHTML =''; document.getElementById('action_text').innerHTML ='<h5>File Doc ID:{{filename}} , Action Type: {{action_type.[0]}}</h5><hr><b>Full Text</b><hr>{{breaklines textdata.[0]}}';"  data-item="{{filename}}" data-toggle="modal" data-target="#cancelModal">  Office Action ID: {{filename}}</a> | {{action_type.[0]}}</h4>
-              {{#with (lookup ../highlighting id) }}
+            <div class="media row">
+              <h4 class="col-md-8"><a style="cursor:pointer"; onClick="javascript:document.getElementById('action_text').innerHTML =''; document.getElementById('action_text').innerHTML ='<h5>File Doc ID:{{appid}} - {{ifwnumber}} , Action Type: {{{convertDocCode documentcode}}}</h5><hr><b>Full Text</b><hr>{{breaklines textdata}}';"  data-item="{{filename}}" data-toggle="modal" data-target="#cancelModal">  Office Action ID: {{appid}} - {{ifwnumber}}</a> | {{{convertDocCode documentcode}}}</h4>
+              <div class='col-md-1 col-md-offset-3'>
+                <a class='external-link' target="_blank" href='{{{hyperlinkIt "palm" appid}}}'><i class="icon icon-external-link"></i> PALM</a>
+                <a class='external-link' target="_blank" href='{{{hyperlinkIt "dav" appid}}}'><i class="icon icon-external-link"></i> DAV</a>
+              </div>
+              <div class='col-md-12'>{{#with (lookup ../highlighting id) }}
                 {{#if textdata}}
                   {{#each textdata}}
                     <li>{{{this}}}</li>
                   {{/each}}
                 {{else}}
-                  {{{truncate ../textdata.[0]}}}...
+                  {{{truncate ../textdata}}}...
                 {{/if}}
               {{/with}}
               <hr>
+            </div>
             </div>
           {{else}}
             <h1> No actions found for <span class="text-success">{{term}}</span> we may still be loading some </h1>

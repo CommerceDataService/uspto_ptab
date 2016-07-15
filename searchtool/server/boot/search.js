@@ -22,23 +22,32 @@ exports.buildSearch = function (req, res) {
        id: 1 } }
        */
     // Get From Date
+    var q, fq;
+    fq = "&fq=type:" + req.query.dataset;
     var dateRange='';
     // Only doing this for readiblity. Do not accept blank or undefined dates
-
     if ((typeof req.query.fromdate !== 'undefined' && req.query.todate !== 'undefined') &&  (req.query.fromdate.length > 2 && req.query.todate.length > 2)) {
-        var fromdate =  moment(req.query.fromdate).format('YYYY-MM-DD');
-        var todate   =  moment(req.query.todate).format('YYYY-MM-DD');
-
-        todate = todate + 'T00:00:00Z';
-        fromdate = fromdate + 'T00:00:00Z';
-
-        dateRange = '%20AND%20doc_date:['+ fromdate+'%20TO%20'+todate+']';
+        var fromDate = +new Date(req.query.fromdate)/1000;
+        var toDate   = +new Date(req.query.todate)/1000;
+        dateRange = 'doc_date:['+ fromDate+'%20TO%20'+toDate+']';
+        fq += "&fq=" + dateRange;
     }
 
     // Ensure q var is cast to string
-    var q;
     if (req.query.q) {
         q=req.query.q.toString();
+    }else{q="*:*";}
+
+    // Art Unit Filter
+    if ((typeof req.query.art_unit !== 'undefined') && (req.query.art_unit.length < 7) && (req.query.art_unit.length > 0)) {
+      var artUnit = 'dn_dw_dn_gau_cd:' + req.query.art_unit;
+      fq += "&fq=" + artUnit;
+    }
+
+        // Set documentcode filter
+    if ((typeof req.query.documentcode !== 'undefined') && (req.query.documentcode.length > 0)) {
+        documentcode = 'documentcode:' + req.query.documentcode;
+        fq += "&fq=" + documentcode;
     }
 
     // Set Pagination to incremnt by 20 results
@@ -48,11 +57,11 @@ exports.buildSearch = function (req, res) {
         s = (req.query.pageno -1) *20;
         currentPage = parseInt(req.query.pageno) ;
     }
-    q = q+dateRange;
+
     // Build Search .. if no page number set then only show
-    var SEARCH_URL = config.solrURI+'/'+req.query.dataset+'/select?q='+q+'&wt=json&indent=true&rows=20&start='+s+'&hl=true&hl.snippets=10&hl.fl=textdata&hl.fragsize=200&hl.simple.pre=<code>&hl.simple.post=</code>&hl.usePhraseHighlighter=true&q.op=AND';
-    if (req.query.dataset == 'oafiledatanew'){
-       SEARCH_URL += '&fl=appid,action_type,filename,minread,id,textdata';
+    var SEARCH_URL = config.solrURI+'/select?q={!q.op=AND df=textdata}'+q+fq+'&wt=json&indent=true&rows=20&start='+s+'&hl=true&hl.snippets=10&hl.fl=textdata&hl.fragsize=200&hl.simple.pre=<code>&hl.simple.post=</code>&hl.usePhraseHighlighter=true&q.op=AND';
+    if (req.query.dataset == 'oa'){
+      //  SEARCH_URL += '&fl=appid,action_type,filename,minread,id,textdata';
     }else if (req.query.dataset == 'ptab'){
 	    var ptab = true;
             //add query fields here later for ptab
@@ -71,13 +80,18 @@ exports.buildSearch = function (req, res) {
                 res.render('newview', {
                     result:body.response.docs,
                     total:humanize.numberFormat(body.response.numFound,0),
-                    pagein:paginate({totalItem:body.response.numFound, itemPerPage:20, currentPage:currentPage, url:'/newsearch',params: {q: q, dataset: req.query.dataset} }),
+                    pagein:paginate({totalItem:body.response.numFound, itemPerPage:20, currentPage:currentPage, url:'/newsearch',params: {q: q, dataset: req.query.dataset, fromdate: req.query.fromdate, todate: req.query.todate, artunit: req.query.art_unit, documentcode: req.query.documentcode} }),
                     took:humanize.numberFormat(body.responseHeader.QTime,0 ),
                     highlighting:body.highlighting,
                     term:q,
                     ptab: ptab,
                     email: req.body.email,
-                    accessOK: !!(! config.requireLogin || token.id)
+                    accessOK: !!(! config.requireLogin || token.id),
+                    todate: req.query.todate,
+                    fromdate:req.query.fromdate,
+                    artunit: req.query.art_unit,
+                    documentcode: req.query.documentcode,
+                    dataset: req.query.dataset
                 });
             } else {
                 res.render('newview', {

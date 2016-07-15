@@ -1,0 +1,9 @@
+@-ms-viewport {
+	width: auto !important;
+}
+.external-link{
+	display: block;
+}
+hr{
+	margin-bottom: 5px;
+}
