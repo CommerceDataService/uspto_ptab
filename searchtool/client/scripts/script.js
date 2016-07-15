@@ -112,38 +112,4 @@ function resizeText(multiplier) {
   }
   document.getElementById('results').style.fontSize = parseFloat(document.getElementById('results').style.fontSize) + (multiplier * 0.2) + "em";
 }
-var documentcodeObj = [
-    'RXCTIN',
-    'RDIN',
-    'CTNF',
-    'CNTA',
-    'CTFR',
-    'CNOA',
-    'N271',
-    'REXD',
-    'EX.R',
-    'RTDE',
-    'INTNO',
-    'L.SI',
-    'RXBPAI',
-    'RXSRXI',
-    'CTMS',
-    'M327',
-    'M327-E',
-    'M327-D',
-    'P132',
-    'R327',
-    'RXM327',
-    'RXMISC',
-    'RXMMIS',
-    'SEMI',
-    'RTGR',
-    'RTDI'
-];
 
-var URL = window.location.href;
-documentcodeObj.forEach(function(value,index) {
-    if (URL.indexOf(value) > -1) {
-        $('#documentcodeID option[value="' + value + '"]').prop('selected', true);
-    }
-});
