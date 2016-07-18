@@ -35,7 +35,7 @@
       {{else}}
           {{#each result}}
             <div class="media row">
-              <h4 class="col-md-8"><a style="cursor:pointer"; onClick="javascript:document.getElementById('action_text').innerHTML =''; document.getElementById('action_text').innerHTML ='<h5>File Doc ID:{{appid}} - {{ifwnumber}} , Action Type: {{{convertDocCode documentcode}}}</h5><hr><b>Full Text</b><hr>{{breaklines textdata}}';"  data-item="{{filename}}" data-toggle="modal" data-target="#cancelModal">  Office Action ID: {{appid}} - {{ifwnumber}}</a> | {{{convertDocCode documentcode}}}</h4>
+              <h4 class="col-md-8"><a style="cursor:pointer"; onClick="javascript:document.getElementById('action_text').innerHTML =''; document.getElementById('action_text').innerHTML ='<h5>Office Action ID:{{appid}} - {{ifwnumber}} , Action Type: {{{convertDocCode documentcode}}}</h5><hr><b>Full Text</b><hr>{{breaklines textdata}}';"  data-item="{{filename}}" data-toggle="modal" data-target="#cancelModal">  {{appid}} - {{ifwnumber}}</a> | {{{convertDocCode documentcode}}} | Art Unit: {{dn_dw_dn_gau_cd}}</h4>
               <div class='col-md-1 col-md-offset-3'>
                 <a class='external-link' target="_blank" href='{{{hyperlinkIt "palm" appid}}}'><i class="icon icon-external-link"></i> PALM</a>
                 <a class='external-link' target="_blank" href='{{{hyperlinkIt "dav" appid}}}'><i class="icon icon-external-link"></i> DAV</a>
